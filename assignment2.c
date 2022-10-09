@@ -80,34 +80,53 @@ int main(int argc, char *argv[]) {
     nbr_i_hi); */
     fflush(stdout);
 
-    // generate random records
-    // loop
+    // timer to periodically create random records
+    clock_t TimeZero = clock();
+    double deltaTime = 0;
+    double secondsToDelay = 2;
+    bool exit = false;
+
     srand((unsigned int)time(NULL)+my_rank+1);
-    float base_lat = -15.0;
-    float base_long = 167.0;
-    float base_mag = 4.0;
-    float base_depth = 5.0;
+    
+    while (!exit) {
+        // get delta time in seconds
+        deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
+        
+        // compare if delta time is 2 seconds
+        if(deltaTime == secondsToDelay){
+            // generate random records
+            float base_lat = -15.0;
+            float base_long = 167.0;
+            float base_mag = 4.0;
+            float base_depth = 5.0;
 
-    float latitude = ((float)rand()/(float)(RAND_MAX)) * base_lat;
-    float longitude = ((float)rand()/(float)(RAND_MAX)) * base_long;
-    float magnitude = ((float)rand()/(float)(RAND_MAX)) * base_mag;
-    float depth = ((float)rand()/(float)(RAND_MAX)) * base_depth;
+            float latitude = ((float)rand()/(float)(RAND_MAX)) * base_lat;
+            float longitude = ((float)rand()/(float)(RAND_MAX)) * base_long;
+            float magnitude = ((float)rand()/(float)(RAND_MAX)) * base_mag;
+            float depth = ((float)rand()/(float)(RAND_MAX)) * base_depth;
 
-    time_t s;
-    struct tm* current_time;
-    s = time(NULL) + my_rank + 1;
-    current_time = localtime(&s);
+            time_t s;
+            struct tm* current_time;
+            s = time(NULL) + my_rank + 1;
+            current_time = localtime(&s);
 
-    int current_year = current_time->tm_year + 1900;
-    int current_month = current_time->tm_mon + 1;
-    int current_day = current_time->tm_mday;
-    int current_hour = current_time->tm_hour;
-    int current_min = current_time->tm_min;
-    int current_sec = current_time->tm_sec;
+            int current_year = current_time->tm_year + 1900;
+            int current_month = current_time->tm_mon + 1;
+            int current_day = current_time->tm_mday;
+            int current_hour = current_time->tm_hour;
+            int current_min = current_time->tm_min;
+            int current_sec = current_time->tm_sec;
 
-    printf("random record for rank(%d): %d %d %d %d %d %d %f %f %f %f\n", my_rank,
-    current_year, current_month, current_day, current_hour, current_min, current_sec,
-    latitude, longitude, magnitude, depth);
+            printf("random record for rank(%d): %d %d %d %d %d %d %f %f %f %f\n", my_rank,
+            current_year, current_month, current_day, current_hour, current_min, current_sec,
+            latitude, longitude, magnitude, depth);
+            
+            //reset the clock timers
+            deltaTime = clock();
+            TimeZero = clock();
+        }
+    }
+
 
     MPI_Comm_free(&comm2D);
     MPI_Finalize();
