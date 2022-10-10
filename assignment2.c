@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
@@ -13,6 +14,15 @@
 #define LOWER 3
 
 void set_time_variables();
+
+typedef struct {
+    int current_year, current_month, current_day; // date variables
+    int current_hour, current_min, current_sec; // time variables
+    float latitude, longitude, magnitude, depth; // sensor reading variables
+    int my_rank; // rank of process that created record
+} Record;
+
+void PrintRecord(Record*);
 
 int main(int argc, char *argv[]) {
     // mpi variables
@@ -54,6 +64,28 @@ int main(int argc, char *argv[]) {
         dims[0]=dims[1]=0;
     }
 
+    // create custom MPI datatype for Record
+    const int nitems = 11;
+    int blocklengths[11] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    MPI_Datatype types[11] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT};
+    MPI_Datatype mpi_record_type;
+    
+    MPI_Aint offsets[11];
+    offsets[0] = offsetof(Record, current_year);
+    offsets[1] = offsetof(Record, current_month);
+    offsets[2] = offsetof(Record, current_day);
+    offsets[3] = offsetof(Record, current_hour);
+    offsets[4] = offsetof(Record, current_min);
+    offsets[5] = offsetof(Record, current_sec);
+    offsets[6] = offsetof(Record, latitude);
+    offsets[7] = offsetof(Record, longitude);
+    offsets[8] = offsetof(Record, magnitude);
+    offsets[9] = offsetof(Record, depth);
+    offsets[10] = offsetof(Record, my_rank);
+
+    MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
+    MPI_Type_commit(&mpi_record_type);
+
     // 
     // create cartesian topology for processes
 
@@ -83,21 +115,23 @@ int main(int argc, char *argv[]) {
     // timer to periodically create random records
     clock_t TimeZero = clock();
     double deltaTime = 0;
-    double secondsToDelay = 2;
+    double secondsToDelay = 5;
     bool exit = false;
 
     srand((unsigned int)time(NULL)+my_rank+1);
     
+    // TODO: change loop condition
+    // TODO: change condition for only slaves to act as nodes and master node to be the base station (for reporting purposes)
     while (!exit) {
         // get delta time in seconds
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
-        // compare if delta time is 2 seconds
+        // every 5 seconds
         if(deltaTime == secondsToDelay){
             // generate random records
             float base_lat = -15.0;
             float base_long = 167.0;
-            float base_mag = 4.0;
+            float base_mag = 6.0;
             float base_depth = 5.0;
 
             float latitude = ((float)rand()/(float)(RAND_MAX)) * base_lat;
@@ -117,10 +151,35 @@ int main(int argc, char *argv[]) {
             int current_min = current_time->tm_min;
             int current_sec = current_time->tm_sec;
 
-            printf("random record for rank(%d): %d %d %d %d %d %d %f %f %f %f\n", my_rank,
-            current_year, current_month, current_day, current_hour, current_min, current_sec,
-            latitude, longitude, magnitude, depth);
+            // create record 
+            Record my_record = {current_year, current_month, current_day,
+            current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, my_rank};
+
+            printf("Printing record (rank %d): ", my_record.my_rank);
+            PrintRecord(&my_record);
             
+            // MPI_Send lat and long to all adjacent processes TODO: check if this is correct
+            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D);
+            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D);
+            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D);
+            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D);
+
+            // if the generated record magnitude is greater than 3
+            if (my_record.magnitude > 3) {
+                // send request to adjacent neighbours to acquire their readings and compare
+                // TODO: Checking if records are valid. Not eveery node will have a top,bottom etc.
+                Record top_record, bottom_record, left_record, right_record;
+                ierr = MPI_Recv(&left_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D, &status);
+                ierr = MPI_Recv(&right_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D, &status);
+                ierr = MPI_Recv(&bottom_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D, &status);
+                ierr = MPI_Recv(&top_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D, &status);
+                
+                // recv from neighbours
+                printf("node %d magnitude over 3 (%f). recieved bottom_record from %d: ", my_rank, my_record.magnitude, nbr_j_lo);
+                PrintRecord(&bottom_record);
+                // compare readings
+            }
+
             //reset the clock timers
             deltaTime = clock();
             TimeZero = clock();
@@ -135,4 +194,11 @@ int main(int argc, char *argv[]) {
 
 void set_time_variables() {
 
+}
+
+void PrintRecord(Record *record) {
+    printf("%d %d %d %d %d %d %f %f %f %f\n", 
+    record->current_year, record->current_month, record->current_day,
+    record->current_hour, record->current_min, record->current_sec,
+    record->latitude, record->longitude, record->magnitude, record->depth);
 }
