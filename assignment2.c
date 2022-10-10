@@ -107,9 +107,9 @@ int main(int argc, char *argv[]) {
     P[my_col+1] */
     MPI_Cart_shift( comm2D, SHIFT_ROW, DISP, &nbr_i_lo, &nbr_i_hi);
     MPI_Cart_shift( comm2D, SHIFT_COL, DISP, &nbr_j_lo, &nbr_j_hi);
-    /*printf("Global rank: %d. Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", my_rank,
-    my_cart_rank, coord[0], coord[1], nbr_j_lo, nbr_j_hi, nbr_i_lo,
-    nbr_i_hi); */
+    // printf("Global rank: %d. Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", my_rank,
+    // my_cart_rank, coord[0], coord[1], nbr_j_lo, nbr_j_hi, nbr_i_lo,
+    // nbr_i_hi); 
     fflush(stdout);
 
     // timer to periodically create random records
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
             Record my_record = {current_year, current_month, current_day,
             current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, my_rank};
 
-            printf("Printing record (rank %d): ", my_record.my_rank);
+            printf("rank (%d)(1) Printing record: ", my_record.my_rank);
             PrintRecord(&my_record);
             
             // MPI_Send lat and long to all adjacent processes TODO: check if this is correct
@@ -165,18 +165,36 @@ int main(int argc, char *argv[]) {
             ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D);
 
             // if the generated record magnitude is greater than 3
-            if (my_record.magnitude > 3) {
+            if (my_record.magnitude > 3.0) {
                 // send request to adjacent neighbours to acquire their readings and compare
                 // TODO: Checking if records are valid. Not eveery node will have a top,bottom etc.
-                Record top_record, bottom_record, left_record, right_record;
-                ierr = MPI_Recv(&left_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D, &status);
-                ierr = MPI_Recv(&right_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D, &status);
-                ierr = MPI_Recv(&bottom_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D, &status);
-                ierr = MPI_Recv(&top_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D, &status);
+                Record top_record, bottom_record, left_record, right_record = {};
+                if (nbr_j_lo >= 0) ierr = MPI_Recv(&left_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D, &status);
+                if (nbr_j_hi >= 0) ierr = MPI_Recv(&right_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D, &status);
+                if (nbr_i_hi >= 0) ierr = MPI_Recv(&bottom_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D, &status);
+                if (nbr_i_lo >= 0) ierr = MPI_Recv(&top_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D, &status);
                 
                 // recv from neighbours
-                printf("node %d magnitude over 3 (%f). recieved bottom_record from %d: ", my_rank, my_record.magnitude, nbr_j_lo);
-                PrintRecord(&bottom_record);
+                printf("\n\nrank (%d)(2) magnitude over 3 (%f).\n", my_rank, my_record.magnitude);
+                printf("rank (%d)(3) Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", my_rank,
+                my_cart_rank, coord[0], coord[1], nbr_j_lo, nbr_j_hi, nbr_i_lo, nbr_i_hi); 
+                if (nbr_i_lo >= 0) {
+                    printf("rank (%d)(4) top record: ", my_rank);
+                    PrintRecord(&top_record);
+                }
+                if (nbr_i_hi >= 0) {
+                    printf("rank (%d)(5) bottom record: ", my_rank);
+                    PrintRecord(&bottom_record);
+                }
+                if (nbr_j_lo >= 0) {
+                    printf("rank (%d)(6) left record: ", my_rank);
+                    PrintRecord(&left_record);
+                }
+                if (nbr_j_hi >= 0) {
+                    printf("rank (%d)(7) right record: ", my_rank);
+                    PrintRecord(&right_record);
+                }
+                printf("rank (%d)(8) end of output\n\n", my_rank);
                 // compare readings
             }
 
@@ -197,7 +215,7 @@ void set_time_variables() {
 }
 
 void PrintRecord(Record *record) {
-    printf("%d %d %d %d %d %d %f %f %f %f\n", 
+    printf("rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
     record->current_year, record->current_month, record->current_day,
     record->current_hour, record->current_min, record->current_sec,
     record->latitude, record->longitude, record->magnitude, record->depth);
