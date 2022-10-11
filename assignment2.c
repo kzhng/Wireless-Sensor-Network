@@ -14,6 +14,9 @@
 #define LOWER 3
 
 void set_time_variables();
+double deg2rad(double);
+double rad2deg(double);
+double distance(double lat1, double lon1, double lat2, double lon2);
 
 typedef struct {
     int current_year, current_month, current_day; // date variables
@@ -158,16 +161,15 @@ int main(int argc, char *argv[]) {
             printf("rank (%d)(1) Printing record: ", my_record.my_rank);
             PrintRecord(&my_record);
             
-            // MPI_Send lat and long to all adjacent processes TODO: check if this is correct
-            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D);
-            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D);
-            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D);
-            ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D);
+            // Only send record to valid adjacent neighbours
+            if (nbr_i_lo >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D); // top
+            if (nbr_i_hi >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D); // bottom
+            if (nbr_j_lo >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D); // left
+            if (nbr_j_hi >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D); // right
 
             // if the generated record magnitude is greater than 3
             if (my_record.magnitude > 3.0) {
                 // send request to adjacent neighbours to acquire their readings and compare
-                // TODO: Checking if records are valid. Not eveery node will have a top,bottom etc.
                 Record top_record, bottom_record, left_record, right_record = {};
                 if (nbr_j_lo >= 0) ierr = MPI_Recv(&left_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D, &status);
                 if (nbr_j_hi >= 0) ierr = MPI_Recv(&right_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D, &status);
@@ -181,21 +183,72 @@ int main(int argc, char *argv[]) {
                 if (nbr_i_lo >= 0) {
                     printf("rank (%d)(4) top record: ", my_rank);
                     PrintRecord(&top_record);
+                    // compare readings
+                    // compute absolute difference of latitude and longitude between records
+                    float my_lat, my_lon, nbr_lat, nbr_lon;
+                    my_lat = my_record.latitude;
+                    my_lon = my_record.longitude;
+                    nbr_lat = top_record.latitude;
+                    nbr_lon = top_record.longitude;
+                    double abs_distance;
+                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
+                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, top_record.my_rank, abs_distance);
+                    // compute absolute difference of magnitude between records
+                    // compute absolute difference of depth between records
+                    // if nodes are outside of acceptable threshold, send to base station
                 }
                 if (nbr_i_hi >= 0) {
                     printf("rank (%d)(5) bottom record: ", my_rank);
                     PrintRecord(&bottom_record);
+                    // compare readings
+                    // compute absolute difference of latitude and longitude between records
+                    float my_lat, my_lon, nbr_lat, nbr_lon;
+                    my_lat = my_record.latitude;
+                    my_lon = my_record.longitude;
+                    nbr_lat = bottom_record.latitude;
+                    nbr_lon = bottom_record.longitude;
+                    double abs_distance;
+                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
+                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, bottom_record.my_rank, abs_distance);
+                    // compute absolute difference of magnitude between records
+                    // compute absolute difference of depth between records
+                    // if nodes are outside of acceptable threshold, send to base station
                 }
                 if (nbr_j_lo >= 0) {
                     printf("rank (%d)(6) left record: ", my_rank);
                     PrintRecord(&left_record);
+                    // compare readings
+                    // compute absolute difference of latitude and longitude between records
+                    float my_lat, my_lon, nbr_lat, nbr_lon;
+                    my_lat = my_record.latitude;
+                    my_lon = my_record.longitude;
+                    nbr_lat = left_record.latitude;
+                    nbr_lon = left_record.longitude;
+                    double abs_distance;
+                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
+                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, left_record.my_rank, abs_distance);
+                    // compute absolute difference of magnitude between records
+                    // compute absolute difference of depth between records
+                    // if nodes are outside of acceptable threshold, send to base station
                 }
                 if (nbr_j_hi >= 0) {
                     printf("rank (%d)(7) right record: ", my_rank);
                     PrintRecord(&right_record);
+                    // compare readings
+                    // compute absolute difference of latitude and longitude between records
+                    float my_lat, my_lon, nbr_lat, nbr_lon;
+                    my_lat = my_record.latitude;
+                    my_lon = my_record.longitude;
+                    nbr_lat = right_record.latitude;
+                    nbr_lon = right_record.longitude;
+                    double abs_distance;
+                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
+                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, right_record.my_rank, abs_distance);
+                    // compute absolute difference of magnitude between records
+                    // compute absolute difference of depth between records
+                    // if nodes are outside of acceptable threshold, send to base station
                 }
                 printf("rank (%d)(8) end of output\n\n", my_rank);
-                // compare readings
             }
 
             //reset the clock timers
@@ -219,4 +272,36 @@ void PrintRecord(Record *record) {
     record->current_year, record->current_month, record->current_day,
     record->current_hour, record->current_min, record->current_sec,
     record->latitude, record->longitude, record->magnitude, record->depth);
+}
+
+// TODO: reference this correctly
+// https://www.geodatasource.com/developers/c
+double distance(double lat1, double lon1, double lat2, double lon2) {
+  double theta, dist;
+  if ((lat1 == lat2) && (lon1 == lon2)) {
+    return 0;
+  }
+  else {
+    theta = lon1 - lon2;
+    dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta));
+    dist = acos(dist);
+    dist = rad2deg(dist);
+    dist = dist * 60 * 1.1515;
+    dist = dist * 1.609344;
+    }
+    return (dist);
+}
+
+/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+/*::  This function converts decimal degrees to radians             :*/
+/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+double deg2rad(double deg) {
+  return (deg * M_PI / 180);
+}
+
+/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+/*::  This function converts radians to decimal degrees             :*/
+/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+double rad2deg(double rad) {
+  return (rad * 180 / M_PI);
 }
