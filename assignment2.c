@@ -169,6 +169,10 @@ int main(int argc, char *argv[]) {
 
             // if the generated record magnitude is greater than 3
             if (my_record.magnitude > 3.0) {
+                // These may need tweaking.
+                const float threshold_distance = 5000.0;
+                const float threshold_magnitude = 5.0;
+                const float threshold_depth = 5.0;
                 // send request to adjacent neighbours to acquire their readings and compare
                 Record top_record, bottom_record, left_record, right_record = {};
                 if (nbr_j_lo >= 0) ierr = MPI_Recv(&left_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D, &status);
@@ -176,14 +180,16 @@ int main(int argc, char *argv[]) {
                 if (nbr_i_hi >= 0) ierr = MPI_Recv(&bottom_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D, &status);
                 if (nbr_i_lo >= 0) ierr = MPI_Recv(&top_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D, &status);
                 
+                int neighbours_matching=0; // if neighbouring records are within threshold, increment
+                
                 // recv from neighbours
-                printf("\n\nrank (%d)(2) magnitude over 3 (%f).\n", my_rank, my_record.magnitude);
+                printf("rank (%d)(2) magnitude over 3 (%f).\n", my_rank, my_record.magnitude);
                 printf("rank (%d)(3) Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", my_rank,
                 my_cart_rank, coord[0], coord[1], nbr_j_lo, nbr_j_hi, nbr_i_lo, nbr_i_hi); 
                 if (nbr_i_lo >= 0) {
                     printf("rank (%d)(4) top record: ", my_rank);
                     PrintRecord(&top_record);
-                    // compare readings
+                    // compare readings TODO: break out into a function
                     // compute absolute difference of latitude and longitude between records
                     float my_lat, my_lon, nbr_lat, nbr_lon;
                     my_lat = my_record.latitude;
@@ -206,6 +212,10 @@ int main(int argc, char *argv[]) {
                     delta_dep = fabs(my_dep-nbr_dep);
                     printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
+                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
+                        // the two records are reasonably accurate in comparison to each other
+                        neighbours_matching++;
+                    }
                 }
                 if (nbr_i_hi >= 0) {
                     printf("rank (%d)(5) bottom record: ", my_rank);
@@ -233,6 +243,10 @@ int main(int argc, char *argv[]) {
                     delta_dep = fabs(my_dep-nbr_dep);
                     printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
+                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
+                        // the two records are reasonably accurate in comparison to each other
+                        neighbours_matching++;
+                    }
                 }
                 if (nbr_j_lo >= 0) {
                     printf("rank (%d)(6) left record: ", my_rank);
@@ -260,6 +274,10 @@ int main(int argc, char *argv[]) {
                     delta_dep = fabs(my_dep-nbr_dep);
                     printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
+                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
+                        // the two records are reasonably accurate in comparison to each other
+                        neighbours_matching++;
+                    }
                 }
                 if (nbr_j_hi >= 0) {
                     printf("rank (%d)(7) right record: ", my_rank);
@@ -287,6 +305,15 @@ int main(int argc, char *argv[]) {
                     delta_dep = fabs(my_dep-nbr_dep);
                     printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
+                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
+                        // the two records are reasonably accurate in comparison to each other
+                        neighbours_matching++;
+                    }
+                }
+                // TODO: if two or more neighbours have matching records (within threshold)
+                if (neighbours_matching >= 2) {
+                    // TODO: send to base station
+                    printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", my_rank, neighbours_matching);
                 }
                 printf("rank (%d)(8) end of output\n\n", my_rank);
             }
