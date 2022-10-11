@@ -194,8 +194,18 @@ int main(int argc, char *argv[]) {
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
                     printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, top_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
+                    float my_mag, nbr_mag, delta_mag;
+                    my_mag = my_record.magnitude;
+                    nbr_mag = top_record.magnitude;
+                    delta_mag = fabs(my_mag-nbr_mag);
+                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
-                    // if nodes are outside of acceptable threshold, send to base station
+                    float my_dep, nbr_dep, delta_dep;
+                    my_dep = my_record.depth;
+                    nbr_dep = top_record.depth;
+                    delta_dep = fabs(my_dep-nbr_dep);
+                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_dep);
+                    // if records are outside of acceptable threshold, send to base station
                 }
                 if (nbr_i_hi >= 0) {
                     printf("rank (%d)(5) bottom record: ", my_rank);
@@ -211,8 +221,18 @@ int main(int argc, char *argv[]) {
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
                     printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, bottom_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
+                    float my_mag, nbr_mag, delta_mag;
+                    my_mag = my_record.magnitude;
+                    nbr_mag = bottom_record.magnitude;
+                    delta_mag = fabs(my_mag-nbr_mag);
+                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
-                    // if nodes are outside of acceptable threshold, send to base station
+                    float my_dep, nbr_dep, delta_dep;
+                    my_dep = my_record.depth;
+                    nbr_dep = bottom_record.depth;
+                    delta_dep = fabs(my_dep-nbr_dep);
+                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_dep);
+                    // if records are outside of acceptable threshold, send to base station
                 }
                 if (nbr_j_lo >= 0) {
                     printf("rank (%d)(6) left record: ", my_rank);
@@ -228,8 +248,18 @@ int main(int argc, char *argv[]) {
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
                     printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, left_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
+                    float my_mag, nbr_mag, delta_mag;
+                    my_mag = my_record.magnitude;
+                    nbr_mag = left_record.magnitude;
+                    delta_mag = fabs(my_mag-nbr_mag);
+                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
-                    // if nodes are outside of acceptable threshold, send to base station
+                    float my_dep, nbr_dep, delta_dep;
+                    my_dep = my_record.depth;
+                    nbr_dep = left_record.depth;
+                    delta_dep = fabs(my_dep-nbr_dep);
+                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
+                    // if records are outside of acceptable threshold, send to base station
                 }
                 if (nbr_j_hi >= 0) {
                     printf("rank (%d)(7) right record: ", my_rank);
@@ -245,8 +275,18 @@ int main(int argc, char *argv[]) {
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
                     printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, right_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
+                    float my_mag, nbr_mag, delta_mag;
+                    my_mag = my_record.magnitude;
+                    nbr_mag = right_record.magnitude;
+                    delta_mag = fabs(my_mag-nbr_mag);
+                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, right_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
-                    // if nodes are outside of acceptable threshold, send to base station
+                    float my_dep, nbr_dep, delta_dep;
+                    my_dep = my_record.depth;
+                    nbr_dep = left_record.depth;
+                    delta_dep = fabs(my_dep-nbr_dep);
+                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
+                    // if records are outside of acceptable threshold, send to base station
                 }
                 printf("rank (%d)(8) end of output\n\n", my_rank);
             }
