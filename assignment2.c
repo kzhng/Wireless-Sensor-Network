@@ -15,7 +15,6 @@
 
 void set_time_variables();
 double deg2rad(double);
-double rad2deg(double);
 double distance(double lat1, double lon1, double lat2, double lon2);
 
 typedef struct {
@@ -344,17 +343,23 @@ void PrintRecord(Record *record) {
 // TODO: reference this correctly
 // https://www.geodatasource.com/developers/c
 double distance(double lat1, double lon1, double lat2, double lon2) {
-  double theta, dist;
+  double diff_lat, diff_lon, dist;
   if ((lat1 == lat2) && (lon1 == lon2)) {
     return 0;
   }
   else {
-    theta = lon1 - lon2;
-    dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta));
-    dist = acos(dist);
-    dist = rad2deg(dist);
-    dist = dist * 60 * 1.1515;
-    dist = dist * 1.609344;
+    // Haversine formula
+    double radius = 6371;
+
+    lat1 = deg2rad(lat1);
+    lon1 = deg2rad(lon1);
+    lat2 = deg2rad(lat2);
+    lon2 = deg2rad(lon2);
+
+    diff_lat = lat2 - lat1;
+    diff_lon = lon2 - lon1;
+    dist = pow(sin(diff_lat/2), 2) + (cos(lat1) * cos(lat2) * pow(sin(diff_lon/2), 2));
+    dist = 2 * radius * asin(sqrt(dist));
     }
     return (dist);
 }
@@ -364,11 +369,4 @@ double distance(double lat1, double lon1, double lat2, double lon2) {
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 double deg2rad(double deg) {
   return (deg * M_PI / 180);
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-/*::  This function converts radians to decimal degrees             :*/
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-double rad2deg(double rad) {
-  return (rad * 180 / M_PI);
 }
