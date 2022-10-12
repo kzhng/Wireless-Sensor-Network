@@ -2,6 +2,12 @@
 
 ## TODO
 
+### How to run
+```
+make     // builds project
+make run // runs project
+```
+
 ### 1.0) Simulating the seafloor seismic sensor node
 - [x] a) A single MPI process simulates one sensor node
 - [x] b) Each node periodically produces a simulated sensor reading.
