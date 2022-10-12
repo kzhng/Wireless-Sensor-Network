@@ -26,7 +26,7 @@ typedef struct {
 } Record;
 
 void PrintRecord(Record*);
-
+Record GenerateRecord(int sensor_rank);
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]);
 
 void set_time_variables();
