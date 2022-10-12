@@ -6,4 +6,4 @@ SRCS=main.c base_station.c sensor.c
 default:
 	$(CC) $(SRCS) -o $(EXE)  $(CFLAGS)
 run:
-	mpirun -np 17 --oversubscribe $(EXE) 4 4
+	mpirun -np 21 --oversubscribe $(EXE) 4 5
