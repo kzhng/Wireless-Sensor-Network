@@ -9,11 +9,10 @@
 int main(int argc, char *argv[]) {
     // mpi variables
     int size, my_rank;
-    MPI_Comm new_comm;
-    // cartesian topology variables
+    MPI_Comm sensor_comm;
+    // arguments
     int nrows, ncols;
-    int ndims=2;
-    int dims[ndims];
+    int dims[NDIMS];
     // initialise MPI Environment
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -24,8 +23,8 @@ int main(int argc, char *argv[]) {
         ncols = atoi(argv[2]);
         dims[0] = nrows; // number of rows
         dims[1] = ncols;
-        if ((nrows*ncols) != size) {
-            if (my_rank == 0) printf("Error: nrows (%d)*ncols(%d) = (%d) != size(%d). Adjust nrows*ncols to equal size.\n", nrows, ncols, nrows*ncols, size);
+        if ((nrows*ncols) != size-1) {
+            if (my_rank == 0) printf("Error: nrows (%d)*ncols(%d) = (%d) != size(%d). Adjust nrows*ncols to equal size-1.\n", nrows, ncols, nrows*ncols, size-1);
             MPI_Finalize();
             return EXIT_SUCCESS;
         }
@@ -34,16 +33,17 @@ int main(int argc, char *argv[]) {
         nrows=ncols=(int)sqrt(size);
         dims[0]=dims[1]=0;
     }
+
     int color = my_rank == size - 1; // last process
-    MPI_Comm_split(MPI_COMM_WORLD, color, 0, &new_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, color, 0, &sensor_comm);
 
     if (color) {// if last process
         // base station node
-        base_station(MPI_COMM_WORLD, new_comm);
+        base_station(MPI_COMM_WORLD, sensor_comm);
     }
     else {
         // sensor node
-        sensor_node(MPI_COMM_WORLD, new_comm);
+        sensor_node(MPI_COMM_WORLD, sensor_comm, dims);
     }
         
     MPI_Finalize();
