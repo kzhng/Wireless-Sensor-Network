@@ -24,7 +24,7 @@ typedef struct {
     int my_rank; // rank of process that created record
 } Record;
 
-void PrintRecord(Record*);
+void PrintRecord(FILE *outFile, Record*);
 
 int main(int argc, char *argv[]) {
     // mpi variables
@@ -43,6 +43,10 @@ int main(int argc, char *argv[]) {
     MPI_Comm comm2D;
     // random generation related variables
     unsigned int seed;
+
+    //file i/o
+    FILE *pOutfile;
+
 
     // setup initial MPI environment
     MPI_Status status;
@@ -122,12 +126,26 @@ int main(int argc, char *argv[]) {
 
     srand((unsigned int)time(NULL)+my_rank+1);
     
+    // logging file
+    char output_str[50];
+	sprintf(output_str,"process_%d.txt", my_rank);
+    pOutfile = fopen(output_str, "w");
+    // error checking
+    if (pOutfile == NULL) {
+        perror("File error.");
+        MPI_Finalize();
+        return EXIT_FAILURE;
+    }
+
     // TODO: change loop condition
     // TODO: change condition for only slaves to act as nodes and master node to be the base station (for reporting purposes)
     while (!exit) {
         // get delta time in seconds
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
+
+
+
         // every 5 seconds
         if(deltaTime == secondsToDelay){
             // generate random records
@@ -157,8 +175,8 @@ int main(int argc, char *argv[]) {
             Record my_record = {current_year, current_month, current_day,
             current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, my_rank};
 
-            printf("rank (%d)(1) Printing record: ", my_record.my_rank);
-            PrintRecord(&my_record);
+            fprintf(pOutfile, "rank (%d)(1) Printing record: ", my_record.my_rank);
+            PrintRecord(pOutfile, &my_record);
             
             // Only send record to valid adjacent neighbours
             if (nbr_i_lo >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D); // top
@@ -182,12 +200,12 @@ int main(int argc, char *argv[]) {
                 int neighbours_matching=0; // if neighbouring records are within threshold, increment
                 
                 // recv from neighbours
-                printf("rank (%d)(2) magnitude over 3 (%f).\n", my_rank, my_record.magnitude);
-                printf("rank (%d)(3) Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", my_rank,
+                fprintf(pOutfile, "rank (%d)(2) magnitude over 3 (%f).\n", my_rank, my_record.magnitude);
+                fprintf(pOutfile, "rank (%d)(3) Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", my_rank,
                 my_cart_rank, coord[0], coord[1], nbr_j_lo, nbr_j_hi, nbr_i_lo, nbr_i_hi); 
                 if (nbr_i_lo >= 0) {
-                    printf("rank (%d)(4) top record: ", my_rank);
-                    PrintRecord(&top_record);
+                    fprintf(pOutfile, "rank (%d)(4) top record: ", my_rank);
+                    PrintRecord(pOutfile, &top_record);
                     // compare readings TODO: break out into a function
                     // compute absolute difference of latitude and longitude between records
                     float my_lat, my_lon, nbr_lat, nbr_lon;
@@ -197,19 +215,19 @@ int main(int argc, char *argv[]) {
                     nbr_lon = top_record.longitude;
                     double abs_distance;
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, top_record.my_rank, abs_distance);
+                    fprintf(pOutfile, "rank (%d) absolute difference from rank (%d): %f\n", my_rank, top_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
                     float my_mag, nbr_mag, delta_mag;
                     my_mag = my_record.magnitude;
                     nbr_mag = top_record.magnitude;
                     delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_mag);
+                    fprintf(pOutfile, "rank (%d) magnitude diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
                     float my_dep, nbr_dep, delta_dep;
                     my_dep = my_record.depth;
                     nbr_dep = top_record.depth;
                     delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_dep);
+                    fprintf(pOutfile, "rank (%d) depth diff from rank (%d): %f\n", my_rank, top_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -217,8 +235,8 @@ int main(int argc, char *argv[]) {
                     }
                 }
                 if (nbr_i_hi >= 0) {
-                    printf("rank (%d)(5) bottom record: ", my_rank);
-                    PrintRecord(&bottom_record);
+                    fprintf(pOutfile, "rank (%d)(5) bottom record: ", my_rank);
+                    PrintRecord(pOutfile, &bottom_record);
                     // compare readings
                     // compute absolute difference of latitude and longitude between records
                     float my_lat, my_lon, nbr_lat, nbr_lon;
@@ -228,19 +246,19 @@ int main(int argc, char *argv[]) {
                     nbr_lon = bottom_record.longitude;
                     double abs_distance;
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, bottom_record.my_rank, abs_distance);
+                    fprintf(pOutfile, "rank (%d) absolute difference from rank (%d): %f\n", my_rank, bottom_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
                     float my_mag, nbr_mag, delta_mag;
                     my_mag = my_record.magnitude;
                     nbr_mag = bottom_record.magnitude;
                     delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_mag);
+                    fprintf(pOutfile, "rank (%d) magnitude diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
                     float my_dep, nbr_dep, delta_dep;
                     my_dep = my_record.depth;
                     nbr_dep = bottom_record.depth;
                     delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_dep);
+                    fprintf(pOutfile, "rank (%d) depth diff from rank (%d): %f\n", my_rank, bottom_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -248,8 +266,8 @@ int main(int argc, char *argv[]) {
                     }
                 }
                 if (nbr_j_lo >= 0) {
-                    printf("rank (%d)(6) left record: ", my_rank);
-                    PrintRecord(&left_record);
+                    fprintf(pOutfile, "rank (%d)(6) left record: ", my_rank);
+                    PrintRecord(pOutfile, &left_record);
                     // compare readings
                     // compute absolute difference of latitude and longitude between records
                     float my_lat, my_lon, nbr_lat, nbr_lon;
@@ -259,19 +277,19 @@ int main(int argc, char *argv[]) {
                     nbr_lon = left_record.longitude;
                     double abs_distance;
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, left_record.my_rank, abs_distance);
+                    fprintf(pOutfile, "rank (%d) absolute difference from rank (%d): %f\n", my_rank, left_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
                     float my_mag, nbr_mag, delta_mag;
                     my_mag = my_record.magnitude;
                     nbr_mag = left_record.magnitude;
                     delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_mag);
+                    fprintf(pOutfile, "rank (%d) magnitude diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
                     float my_dep, nbr_dep, delta_dep;
                     my_dep = my_record.depth;
                     nbr_dep = left_record.depth;
                     delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
+                    fprintf(pOutfile, "rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -279,8 +297,8 @@ int main(int argc, char *argv[]) {
                     }
                 }
                 if (nbr_j_hi >= 0) {
-                    printf("rank (%d)(7) right record: ", my_rank);
-                    PrintRecord(&right_record);
+                    fprintf(pOutfile, "rank (%d)(7) right record: ", my_rank);
+                    PrintRecord(pOutfile, &right_record);
                     // compare readings
                     // compute absolute difference of latitude and longitude between records
                     float my_lat, my_lon, nbr_lat, nbr_lon;
@@ -290,19 +308,19 @@ int main(int argc, char *argv[]) {
                     nbr_lon = right_record.longitude;
                     double abs_distance;
                     abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", my_rank, right_record.my_rank, abs_distance);
+                    fprintf(pOutfile, "rank (%d) absolute difference from rank (%d): %f\n", my_rank, right_record.my_rank, abs_distance);
                     // compute absolute difference of magnitude between records
                     float my_mag, nbr_mag, delta_mag;
                     my_mag = my_record.magnitude;
                     nbr_mag = right_record.magnitude;
                     delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", my_rank, right_record.my_rank, delta_mag);
+                    fprintf(pOutfile, "rank (%d) magnitude diff from rank (%d): %f\n", my_rank, right_record.my_rank, delta_mag);
                     // compute absolute difference of depth between records
                     float my_dep, nbr_dep, delta_dep;
                     my_dep = my_record.depth;
                     nbr_dep = left_record.depth;
                     delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
+                    fprintf(pOutfile, "rank (%d) depth diff from rank (%d): %f\n", my_rank, left_record.my_rank, delta_dep);
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -312,9 +330,9 @@ int main(int argc, char *argv[]) {
                 // TODO: if two or more neighbours have matching records (within threshold)
                 if (neighbours_matching >= 2) {
                     // TODO: send to base station
-                    printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", my_rank, neighbours_matching);
+                    fprintf(pOutfile, "~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", my_rank, neighbours_matching);
                 }
-                printf("rank (%d)(8) end of output\n\n", my_rank);
+                fprintf(pOutfile, "rank (%d)(8) end of output\n\n", my_rank);
             }
 
             //reset the clock timers
@@ -323,7 +341,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-
+    fclose(pOutfile);
     MPI_Comm_free(&comm2D);
     MPI_Finalize();
     return EXIT_SUCCESS;
@@ -333,8 +351,8 @@ void set_time_variables() {
 
 }
 
-void PrintRecord(Record *record) {
-    printf("rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
+void PrintRecord(FILE *outFile, Record *record) {
+    fprintf(outFile,"rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
     record->current_year, record->current_month, record->current_day,
     record->current_hour, record->current_min, record->current_sec,
     record->latitude, record->longitude, record->magnitude, record->depth);
