@@ -27,6 +27,8 @@ typedef struct {
 
 void PrintRecord(Record*);
 Record GenerateRecord(int sensor_rank);
+int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep);
+
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]);
 
 void set_time_variables();

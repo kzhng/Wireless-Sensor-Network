@@ -115,29 +115,10 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 if (nbr_i_lo >= 0) {
                     printf("rank (%d)(4) top record: ", sensor_rank);
                     PrintRecord(&top_record);
-                    // compare readings TODO: break out into a function
-                    // compute absolute difference of latitude and longitude between records
-                    float my_lat, my_lon, nbr_lat, nbr_lon;
-                    my_lat = my_record.latitude;
-                    my_lon = my_record.longitude;
-                    nbr_lat = top_record.latitude;
-                    nbr_lon = top_record.longitude;
-                    double abs_distance;
-                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", sensor_rank, top_record.my_rank, abs_distance);
-                    // compute absolute difference of magnitude between records
-                    float my_mag, nbr_mag, delta_mag;
-                    my_mag = my_record.magnitude;
-                    nbr_mag = top_record.magnitude;
-                    delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", sensor_rank, top_record.my_rank, delta_mag);
-                    // compute absolute difference of depth between records
-                    float my_dep, nbr_dep, delta_dep;
-                    my_dep = my_record.depth;
-                    nbr_dep = top_record.depth;
-                    delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", sensor_rank, top_record.my_rank, delta_dep);
-                    // if records are outside of acceptable threshold, send to base station
+
+                    float abs_distance, delta_dep, delta_mag;
+                    CompareRecords(&my_record, &top_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
+
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
                         neighbours_matching++;
@@ -147,27 +128,9 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     printf("rank (%d)(5) bottom record: ", sensor_rank);
                     PrintRecord(&bottom_record);
                     // compare readings
-                    // compute absolute difference of latitude and longitude between records
-                    float my_lat, my_lon, nbr_lat, nbr_lon;
-                    my_lat = my_record.latitude;
-                    my_lon = my_record.longitude;
-                    nbr_lat = bottom_record.latitude;
-                    nbr_lon = bottom_record.longitude;
-                    double abs_distance;
-                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", sensor_rank, bottom_record.my_rank, abs_distance);
-                    // compute absolute difference of magnitude between records
-                    float my_mag, nbr_mag, delta_mag;
-                    my_mag = my_record.magnitude;
-                    nbr_mag = bottom_record.magnitude;
-                    delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", sensor_rank, bottom_record.my_rank, delta_mag);
-                    // compute absolute difference of depth between records
-                    float my_dep, nbr_dep, delta_dep;
-                    my_dep = my_record.depth;
-                    nbr_dep = bottom_record.depth;
-                    delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", sensor_rank, bottom_record.my_rank, delta_dep);
+                    float abs_distance, delta_dep, delta_mag;
+                    CompareRecords(&my_record, &bottom_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
+
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -178,27 +141,9 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     printf("rank (%d)(6) left record: ", sensor_rank);
                     PrintRecord(&left_record);
                     // compare readings
-                    // compute absolute difference of latitude and longitude between records
-                    float my_lat, my_lon, nbr_lat, nbr_lon;
-                    my_lat = my_record.latitude;
-                    my_lon = my_record.longitude;
-                    nbr_lat = left_record.latitude;
-                    nbr_lon = left_record.longitude;
-                    double abs_distance;
-                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", sensor_rank, left_record.my_rank, abs_distance);
-                    // compute absolute difference of magnitude between records
-                    float my_mag, nbr_mag, delta_mag;
-                    my_mag = my_record.magnitude;
-                    nbr_mag = left_record.magnitude;
-                    delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", sensor_rank, left_record.my_rank, delta_mag);
-                    // compute absolute difference of depth between records
-                    float my_dep, nbr_dep, delta_dep;
-                    my_dep = my_record.depth;
-                    nbr_dep = left_record.depth;
-                    delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", sensor_rank, left_record.my_rank, delta_dep);
+                    float abs_distance, delta_dep, delta_mag;
+                    CompareRecords(&my_record, &left_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
+
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -209,27 +154,9 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     printf("rank (%d)(7) right record: ", sensor_rank);
                     PrintRecord(&right_record);
                     // compare readings
-                    // compute absolute difference of latitude and longitude between records
-                    float my_lat, my_lon, nbr_lat, nbr_lon;
-                    my_lat = my_record.latitude;
-                    my_lon = my_record.longitude;
-                    nbr_lat = right_record.latitude;
-                    nbr_lon = right_record.longitude;
-                    double abs_distance;
-                    abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-                    printf("rank (%d) absolute difference from rank (%d): %f\n", sensor_rank, right_record.my_rank, abs_distance);
-                    // compute absolute difference of magnitude between records
-                    float my_mag, nbr_mag, delta_mag;
-                    my_mag = my_record.magnitude;
-                    nbr_mag = right_record.magnitude;
-                    delta_mag = fabs(my_mag-nbr_mag);
-                    printf("rank (%d) magnitude diff from rank (%d): %f\n", sensor_rank, right_record.my_rank, delta_mag);
-                    // compute absolute difference of depth between records
-                    float my_dep, nbr_dep, delta_dep;
-                    my_dep = my_record.depth;
-                    nbr_dep = left_record.depth;
-                    delta_dep = fabs(my_dep-nbr_dep);
-                    printf("rank (%d) depth diff from rank (%d): %f\n", sensor_rank, left_record.my_rank, delta_dep);
+                    float abs_distance, delta_dep, delta_mag;
+                    CompareRecords(&my_record, &right_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
+
                     // if records are outside of acceptable threshold, send to base station
                     if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
                         // the two records are reasonably accurate in comparison to each other
@@ -290,6 +217,31 @@ Record GenerateRecord(int sensor_rank) {
 
     return my_record;
 }
+
+int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep) {
+    float my_lat, my_lon, nbr_lat, nbr_lon;
+    my_lat = my_record->latitude;
+    my_lon = my_record->longitude;
+    nbr_lat = other_record->latitude;
+    nbr_lon = other_record->longitude;
+    *abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
+    printf("rank (%d) absolute difference from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *abs_distance);
+    // compute absolute difference of magnitude between records
+    float my_mag, nbr_mag;
+    my_mag = my_record->magnitude;
+    nbr_mag = other_record->magnitude;
+    *delta_mag = fabs(my_mag-nbr_mag);
+    printf("rank (%d) magnitude diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_mag);
+    // compute absolute difference of depth between records
+    float my_dep, nbr_dep;
+    my_dep = my_record->depth;
+    nbr_dep = other_record->depth;
+    *delta_dep = fabs(my_dep-nbr_dep);
+    printf("rank (%d) depth diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_dep);
+
+    return 0; // TODO: Change this
+}
+
 
 // TODO: reference this correctly
 // https://www.geodatasource.com/developers/c
