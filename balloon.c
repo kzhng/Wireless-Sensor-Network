@@ -15,7 +15,7 @@ void* balloon(void *pArg) {
     double deltaTime = 0;
     double secondsToDelay = 5;
     bool exit = false;
-    printf("hello world");
+    printf("hello world\n");
     while (!exit) {
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
@@ -24,9 +24,13 @@ void* balloon(void *pArg) {
             // generate random records
             Record my_record = GenerateRecord(0);
             PrintRecord(&my_record);
+                    //reset the clock timers
+            deltaTime = clock();
+            TimeZero = clock();
         }
-        exit = true;
+
     }
+    printf("hello jupiter\n");
     return NULL;
 }
 
