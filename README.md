@@ -27,13 +27,13 @@ receive MPI messages between its adjacent nodes. This thread is created by the s
 terminates properly at the end of the program.
 
 ### 2.0) Simulating the balloon seismic sensor
-- [ ] a) (you may opt to use OpenMP as an alternative to POSIX thread). Note that the balloon covers the
+- [x] a) (you may opt to use OpenMP as an alternative to POSIX thread). Note that the balloon covers the
 same area of the seafloor seismic sensors. For simulation purposes, this thread is created by the base
 station node (refer to point 3.0 below for details about the base station).
-- [ ] b) This thread periodically produces seismic readings. This reading consists of date, time, latitude and
+- [x] b) This thread periodically produces seismic readings. This reading consists of date, time, latitude and
 longitude of the earthquake point, magnitude, and depth of the quake from the sensor. However, the
 generated magnitude always exceeds the predefined threshold (e.g., magnitude > 2.5). 
-- [ ] c) The information in (b) is stored in a shared global array, which can also be accessed by the base
+- [x] c) The information in (b) is stored in a shared global array, which can also be accessed by the base
 station node. The array has a fixed size, and you can decide the size of this array. Once the array is
 full, the thread removes the first entered data from the array to make way for the new data (first in, first
 out approach).
