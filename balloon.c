@@ -5,7 +5,7 @@ void* balloon(void *pArg) {
     double deltaTime = 0;
     double secondsToDelay = 5;
     bool exit = false;
-    int index = 0, num_readings = 0;
+    int index = 0;
     int i;
     printf("hello world\n");
     while (!exit) {
