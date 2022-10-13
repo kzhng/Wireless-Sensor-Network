@@ -1,15 +1,22 @@
 #include "base_station.h"
+#include "balloon.h"
 
 #define NUM_THREADS 4
-#define MPI_SEND 1
-#define MPI_EXIT 2
+#define MSG_SEND 1
+#define MSG_EXIT 2
 
-int base_station(MPI_Comm master_comm, MPI_Comm comm) {
+int base_station(MPI_Comm master_comm, MPI_Comm slave_comm) {
+    int i;
+    int size,sensors_alive;
+    int *recv_array[10];
     
     MPI_Status status;
-    MPI_Comm_size()
+    MPI_Comm_size(slave_comm, &size);
     pthread_t tid[NUM_THREADS];
 	int threadNum[NUM_THREADS];
+    
+    sensors_alive = size;
+    
 
     // log file for base station
     FILE *fp;
@@ -32,7 +39,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm comm) {
         pthread_join(tid[i], NULL);
 	}
     while (sensors_alive > 0) {
-        MPI_Recv(recv_array, 10, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&recv_array, 10, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         switch (status.MPI_TAG) {
             case MSG_EXIT:
@@ -67,9 +74,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm comm) {
 
             break;
         }
-        fclose(fp);
     }
-    
+    fclose(fp);
 
     return 0;
 }
