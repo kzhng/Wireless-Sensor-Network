@@ -41,10 +41,10 @@ out approach).
 thread receives a termination signal, the thread exits.
 
 ### 3.0) Simulating the base station
-- [ ] a) A single MPI process simulates the base station node.
-- [ ] b) The base station node also creates the thread which simulates the balloon seismic sensor (refer to
+- [x] a) A single MPI process simulates the base station node.
+- [x] b) The base station node also creates the thread which simulates the balloon seismic sensor (refer to
 point 2.0 above).
-- [ ] c) The base station node periodically listens for incoming reports from the seafloor seismic sensor
+- [x] c) The base station node periodically listens for incoming reports from the seafloor seismic sensor
 nodes.
 - [ ] d) Upon receiving a report from a sensor node, the base station compares the received report with the
 data in the shared global array (which is populated by the balloon seismic sensor). i. If there is a match, the base station logs the report as a conclusive event (conclusive alert). ii. If there is no match, the base station logs the report as an inconclusive event (inconclusive
