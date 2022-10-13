@@ -1,0 +1,28 @@
+---------------------------------------------------------------------------------------------------------
+Iteration: 
+Logged time: 
+Alert reported time: 
+Alert type: 
+
+Reporting Node          Seismic Coord                        Magnitude                   IPv4
+blah blah
+
+Adjacent Nodes          Seismic Coord     Diff(Coord,km)     Magnitude     Diff(Mag)     IPv4
+blah blah blah
+blah blah blah
+blah blah blah
+blah blah blah
+
+Balloon seismic reporting time: 
+Balloon seismic reporting Coord: 
+Balloon seismic reporting Coord Diff with Reporting Node (km): 
+Balloon seismic reporting Magnitude: 
+Balloon seismic reporting Magnitude Diff with Reporting Node: 
+
+Communication time (seconds): 
+Total messages sent between reporting node and base station: 
+Number of adjacent matches to reporting node: 
+Coordinate difference threshold (km): 
+Magnitude difference threshold: 
+Earthquake magnitude threshold: 
+---------------------------------------------------------------------------------------------------------

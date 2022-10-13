@@ -1,5 +1,8 @@
 #include "balloon.h"
 
-int balloon(MPI_Comm master_comm, MPI_Comm comm) {
-    return 0;
+void balloon(void *pArg) {
+    int my_rank = *((int*)pArg);
+    
+
+    return NULL;
 }
