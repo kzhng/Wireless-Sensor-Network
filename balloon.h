@@ -3,6 +3,6 @@
 
 #include <pthread.h>
 
-int balloon(MPI_Comm master_comm, MPI_Comm comm);
+void* balloon(void *pArg);
 
 #endif // BALLOON_H
