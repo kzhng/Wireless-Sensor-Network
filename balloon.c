@@ -15,6 +15,7 @@ void* balloon(void *pArg) {
     double deltaTime = 0;
     double secondsToDelay = 5;
     bool exit = false;
+    printf("hello world");
     while (!exit) {
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
