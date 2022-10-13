@@ -1,5 +1,8 @@
 #include "balloon.h"
 
+BalloonRecord balloon_readings[BALLOON_READINGS_SIZE];
+int num_readings = 0;
+
 void* balloon(void *pArg) {
     clock_t TimeZero = clock();
     double deltaTime = 0;

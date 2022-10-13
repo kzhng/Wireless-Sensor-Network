@@ -16,8 +16,6 @@ typedef struct {
     int my_rank; // rank of process that created record
 } BalloonRecord;
 
-BalloonRecord balloon_readings[BALLOON_READINGS_SIZE];
-int num_readings = 0;
 pthread_mutex_t gMutex;
 
 void* balloon(void *pArg);
