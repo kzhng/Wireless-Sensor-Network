@@ -1,22 +1,12 @@
 #include "balloon.h"
 
-typedef struct {
-    int current_year, current_month, current_day; // date variables
-    int current_hour, current_min, current_sec; // time variables
-    float latitude, longitude, magnitude, depth; // sensor reading variables
-    int my_rank; // rank of process that created record
-} BalloonRecord;
-
-struct BalloonRecord *balloon_readings = NULL;
-void PrintBalloonRecord(BalloonRecord *record);
-BalloonRecord GenerateBalloonRecord(int sensor_rank);
-
 void* balloon(void *pArg) {
     clock_t TimeZero = clock();
     double deltaTime = 0;
     double secondsToDelay = 5;
     bool exit = false;
-    int index = 0;
+    int index = 0, num_readings = 0;
+    int i;
     printf("hello world\n");
     while (!exit) {
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
@@ -26,10 +16,21 @@ void* balloon(void *pArg) {
             // generate random records
             BalloonRecord my_record = GenerateBalloonRecord(0);
             pthread_mutex_lock(&gMutex);
-            //balloon_readings[index] = my_record;
+            balloon_readings[index] = my_record;
+            if (num_readings < 10) {
+                num_readings++;
+            }
+            index = (index + 1) % BALLOON_READINGS_SIZE;
             pthread_mutex_unlock(&gMutex);
             PrintBalloonRecord(&my_record);
-                    //reset the clock timers
+
+            printf("\nstart check for array data\n");
+            for (int i=0; i<num_readings;i++) {
+                BalloonRecord i_record = balloon_readings[i];
+                PrintBalloonRecord(&i_record);
+            }
+            printf("end check for array data\n\n");
+            //reset the clock timers
             deltaTime = clock();
             TimeZero = clock();
         }
@@ -40,8 +41,6 @@ void* balloon(void *pArg) {
 }
 
 int main() {
-    //balloon_readings = (struct BalloonRecord *)malloc(10 * sizeof(BalloonRecord));
-
     pthread_t tid;
     pthread_mutex_init(&gMutex, NULL);
 
