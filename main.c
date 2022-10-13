@@ -5,6 +5,7 @@
 
 #include "sensor.h"
 #include "base_station.h"
+#include "balloon.h"
 
 int main(int argc, char *argv[]) {
     // mpi variables
