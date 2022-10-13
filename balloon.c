@@ -40,7 +40,7 @@ void* balloon(void *pArg) {
     return NULL;
 }
 
-int main() {
+/*int main() {
     pthread_t tid;
     pthread_mutex_init(&gMutex, NULL);
 
@@ -50,7 +50,7 @@ int main() {
     // Join
     pthread_join(tid, NULL);
     return 0;
-}
+}*/
 
 void PrintBalloonRecord(BalloonRecord *record) {
     printf("rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
