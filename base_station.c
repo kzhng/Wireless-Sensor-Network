@@ -12,8 +12,6 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm) {
     
     MPI_Status status;
     MPI_Comm_size(slave_comm, &size);
-    pthread_t tid[NUM_THREADS];
-	int threadNum[NUM_THREADS];
     
     sensors_alive = size;
     
@@ -27,17 +25,13 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm) {
                 return EXIT_FAILURE;
     }
 
-    // FORK
-    for (int i = 0; i < NUM_THREADS; i++) {
-        threadNum[i] = i;
-        pthread_create(&tid[i], 0, balloon, &threadNum[i]);
-    }
+    pthread_t tid;
+    // Fork
+    pthread_create(&tid, NULL, balloon, NULL);
 
     // Join
-	for(i = 0; i < NUM_THREADS; i++)
-	{
-        pthread_join(tid[i], NULL);
-	}
+    pthread_join(tid, NULL);
+
     while (sensors_alive > 0) {
         MPI_Recv(&recv_array, 10, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 

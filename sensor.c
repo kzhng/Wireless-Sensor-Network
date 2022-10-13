@@ -1,5 +1,4 @@
 #include "sensor.h"
-#include <mpi.h>
 #include <stdlib.h>
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
