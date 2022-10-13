@@ -5,16 +5,18 @@ typedef struct {
     int current_hour, current_min, current_sec; // time variables
     float latitude, longitude, magnitude, depth; // sensor reading variables
     int my_rank; // rank of process that created record
-} Record;
+} BalloonRecord;
 
-void PrintRecord(Record *record);
-Record GenerateRecord(int sensor_rank);
+struct BalloonRecord *balloon_readings = NULL;
+void PrintBalloonRecord(BalloonRecord *record);
+BalloonRecord GenerateBalloonRecord(int sensor_rank);
 
 void* balloon(void *pArg) {
     clock_t TimeZero = clock();
     double deltaTime = 0;
     double secondsToDelay = 5;
     bool exit = false;
+    int index = 0;
     printf("hello world\n");
     while (!exit) {
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
@@ -22,8 +24,11 @@ void* balloon(void *pArg) {
         // every 5 seconds
         if(deltaTime == secondsToDelay){
             // generate random records
-            Record my_record = GenerateRecord(0);
-            PrintRecord(&my_record);
+            BalloonRecord my_record = GenerateBalloonRecord(0);
+            pthread_mutex_lock(&gMutex);
+            //balloon_readings[index] = my_record;
+            pthread_mutex_unlock(&gMutex);
+            PrintBalloonRecord(&my_record);
                     //reset the clock timers
             deltaTime = clock();
             TimeZero = clock();
@@ -35,7 +40,11 @@ void* balloon(void *pArg) {
 }
 
 int main() {
+    //balloon_readings = (struct BalloonRecord *)malloc(10 * sizeof(BalloonRecord));
+
     pthread_t tid;
+    pthread_mutex_init(&gMutex, NULL);
+
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
 
@@ -44,14 +53,14 @@ int main() {
     return 0;
 }
 
-void PrintRecord(Record *record) {
+void PrintBalloonRecord(BalloonRecord *record) {
     printf("rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
     record->current_year, record->current_month, record->current_day,
     record->current_hour, record->current_min, record->current_sec,
     record->latitude, record->longitude, record->magnitude, record->depth);
 }
 
-Record GenerateRecord(int sensor_rank) {
+BalloonRecord GenerateBalloonRecord(int sensor_rank) {
     float base_lat = -15.0;
     float base_long = 167.0;
     float base_mag = 6.0;
@@ -75,7 +84,7 @@ Record GenerateRecord(int sensor_rank) {
     int current_sec = current_time->tm_sec;
 
     // create record TODO: create function
-    Record my_record = {current_year, current_month, current_day,
+    BalloonRecord my_record = {current_year, current_month, current_day,
     current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, sensor_rank};
 
     return my_record;

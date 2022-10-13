@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <time.h>
 
+pthread_mutex_t gMutex;
+
 void* balloon(void *pArg);
 
 #endif // BALLOON_H
