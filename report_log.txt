@@ -1,0 +1,112 @@
+---------------------------------------------------------------------------------------------------------
+Iteration: 
+Logged time: 
+Alert reported time: 
+Alert type: 
+
+Reporting Node          Seismic Coord                        Magnitude                   IPv4
+        11                    (-6.400784,93.077118)                              5.097455                          
+
+Adjacent Nodes          Seismic Coord     Diff(Coord,km)     Magnitude     Diff(Mag)     IPv4
+blah blah blah
+blah blah blah
+blah blah blah
+blah blah blah
+
+Balloon seismic reporting time: 
+Balloon seismic reporting Coord: 
+Balloon seismic reporting Coord Diff with Reporting Node (km): 
+Balloon seismic reporting Magnitude: 
+Balloon seismic reporting Magnitude Diff with Reporting Node: 
+
+Communication time (seconds): 
+Total messages sent between reporting node and base station: 
+Number of adjacent matches to reporting node: 
+Coordinate difference threshold (km): 
+Magnitude difference threshold: 
+Earthquake magnitude threshold: 
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+Iteration: 
+Logged time: 
+Alert reported time: 
+Alert type: 
+
+Reporting Node          Seismic Coord                        Magnitude                   IPv4
+        5                    (-11.652106,13.108250)                              3.195930                          
+
+Adjacent Nodes          Seismic Coord     Diff(Coord,km)     Magnitude     Diff(Mag)     IPv4
+blah blah blah
+blah blah blah
+blah blah blah
+blah blah blah
+
+Balloon seismic reporting time: 
+Balloon seismic reporting Coord: 
+Balloon seismic reporting Coord Diff with Reporting Node (km): 
+Balloon seismic reporting Magnitude: 
+Balloon seismic reporting Magnitude Diff with Reporting Node: 
+
+Communication time (seconds): 
+Total messages sent between reporting node and base station: 
+Number of adjacent matches to reporting node: 
+Coordinate difference threshold (km): 
+Magnitude difference threshold: 
+Earthquake magnitude threshold: 
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+Iteration: 
+Logged time: 
+Alert reported time: 
+Alert type: 
+
+Reporting Node          Seismic Coord                        Magnitude                   IPv4
+        2                    (-10.518867,140.469543)                              3.755766                          
+
+Adjacent Nodes          Seismic Coord     Diff(Coord,km)     Magnitude     Diff(Mag)     IPv4
+blah blah blah
+blah blah blah
+blah blah blah
+blah blah blah
+
+Balloon seismic reporting time: 
+Balloon seismic reporting Coord: 
+Balloon seismic reporting Coord Diff with Reporting Node (km): 
+Balloon seismic reporting Magnitude: 
+Balloon seismic reporting Magnitude Diff with Reporting Node: 
+
+Communication time (seconds): 
+Total messages sent between reporting node and base station: 
+Number of adjacent matches to reporting node: 
+Coordinate difference threshold (km): 
+Magnitude difference threshold: 
+Earthquake magnitude threshold: 
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+Iteration: 
+Logged time: 
+Alert reported time: 
+Alert type: 
+
+Reporting Node          Seismic Coord                        Magnitude                   IPv4
+        8                    (-5.328635,137.239197)                              5.666423                          
+
+Adjacent Nodes          Seismic Coord     Diff(Coord,km)     Magnitude     Diff(Mag)     IPv4
+blah blah blah
+blah blah blah
+blah blah blah
+blah blah blah
+
+Balloon seismic reporting time: 
+Balloon seismic reporting Coord: 
+Balloon seismic reporting Coord Diff with Reporting Node (km): 
+Balloon seismic reporting Magnitude: 
+Balloon seismic reporting Magnitude Diff with Reporting Node: 
+
+Communication time (seconds): 
+Total messages sent between reporting node and base station: 
+Number of adjacent matches to reporting node: 
+Coordinate difference threshold (km): 
+Magnitude difference threshold: 
+Earthquake magnitude threshold: 
+---------------------------------------------------------------------------------------------------------

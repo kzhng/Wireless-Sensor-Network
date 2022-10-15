@@ -3,6 +3,7 @@
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // MPI variables
+    MPI_Request request;
     MPI_Status status;
     int sensor_size, sensor_rank; // sensor size,rank
     int master_size, master_rank; // master size, rank
@@ -28,7 +29,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
 
     // create custom MPI datatype for Record
     const int nitems = 11;
-    int blocklengths[11] = {1};
+    int blocklengths[11] = {1,1,1,1,1,1,1,1,1,1,1};
     MPI_Datatype types[11] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT};
     MPI_Datatype mpi_record_type;
     
@@ -47,6 +48,12 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
+
+    // create custom MPI datatype for Report
+    /*const int rep_nitems = 6;
+    int rep_blockslengths[6] = ;
+    MPI_Datatype rep_types[6] = {MPI_}
+    MPI_Datatype mpi_report_type;*/
 
     // create cartesian topology for processes
     MPI_Dims_create(sensor_size, ndims, dims);
@@ -72,6 +79,15 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     double secondsToDelay = 5;
     bool exit = false;
     srand((unsigned int)time(NULL)+sensor_rank+1);
+
+    Record send_arr[10];
+    /*Report report_arr[10];
+    report_arr[0].type = TIME;
+    report_arr[1].type = INTEGER;
+    report_arr[2].type = RECORD;
+    report_arr[3].type = RECORD;
+    report_arr[4].type = RECORD;
+    report_arr[5].type = RECORD;*/
 
     // TODO: change loop condition
     while (!exit) {
@@ -166,6 +182,16 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 if (neighbours_matching >= 2) {
                     // TODO: send to base station
                     printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", sensor_rank, neighbours_matching);
+                    // creating report array
+                    /*report_arr[0].value.time = clock();
+                    report_arr[1].value.num = neighbours_matching;
+                    report_arr[2].value.rec = &my_record;
+                    report_arr[3].value.rec = &top_record;
+                    report_arr[4].value.rec = &left_record;
+                    report_arr[5].value.rec = &right_record;
+                    report_arr[6].value.rec = &bottom_record;*/
+                    //MPI_Send(&sensor_rank,1,MPI_INT,master_size-1,MSG_SEND,master_comm);
+                    MPI_Isend(&my_record,1, mpi_record_type, master_size-1,MSG_SEND, master_comm,&request);
                 }
                 printf("rank (%d)(8) end of output\n\n", sensor_rank);
             }

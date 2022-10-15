@@ -17,6 +17,8 @@
 #define LOWER 3
 
 #define NDIMS 2
+#define MSG_SEND 1
+#define MSG_EXIT 2
 
 typedef struct {
     int current_year, current_month, current_day; // date variables
@@ -24,6 +26,19 @@ typedef struct {
     float latitude, longitude, magnitude, depth; // sensor reading variables
     int my_rank; // rank of process that created record
 } Record;
+
+typedef struct {
+    enum {
+        TIME,
+        RECORD,
+        INTEGER,
+    } type;
+    union {
+        time_t time;
+        Record rec; 
+        int num;
+    } value;
+} Report;
 
 void PrintRecord(Record*);
 Record GenerateRecord(int sensor_rank);
