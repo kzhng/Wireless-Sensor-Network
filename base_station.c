@@ -12,12 +12,12 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     MPI_Comm_size(slave_comm, &size);
 
     // create custom MPI datatype for Record
-    const int nitems = 11;
-    int blocklengths[11] = {1,1,1,1,1,1,1,1,1,1,1};;
-    MPI_Datatype types[11] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT};
+    const int nitems = 13;
+    int blocklengths[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype types[13] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
     MPI_Datatype mpi_record_type;
     
-    MPI_Aint offsets[11];
+    MPI_Aint offsets[13];
     offsets[0] = offsetof(Record, current_year);
     offsets[1] = offsetof(Record, current_month);
     offsets[2] = offsetof(Record, current_day);
@@ -29,6 +29,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     offsets[8] = offsetof(Record, magnitude);
     offsets[9] = offsetof(Record, depth);
     offsets[10] = offsetof(Record, my_rank);
+    offsets[11] = offsetof(Record, x_coord);
+    offsets[12] = offsetof(Record, y_coord);
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
@@ -67,10 +69,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Logged time: \n");
                     fprintf(fp, "Alert reported time: \n");
                     fprintf(fp, "Alert type: \n");
-                    fprintf(fp, "\nReporting Node          Seismic Coord                        Magnitude                   IPv4\n");
-                    //fprintf(fp,"        %d", rep_node);
-                    fprintf(fp, "        %d                    (%f,%f)                              %f                          \n", reporting_node.my_rank, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude);
-                    fprintf(fp, "\nAdjacent Nodes          Seismic Coord     Diff(Coord,km)     Magnitude     Diff(Mag)     IPv4\n");
+                    fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   IPv4\n");
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude);
+                    fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     IPv4\n");
                     for (int i=0; i<4;i++) {
                         fprintf(fp, "blah blah blah\n");
                     }
@@ -89,7 +90,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     iters++;
                     if (iters>3) {
+                        sensors_alive = 0;
                         fclose(fp);
+                        break;
                     }
                 break;
             }

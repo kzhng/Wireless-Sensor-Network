@@ -24,7 +24,7 @@ typedef struct {
     int current_year, current_month, current_day; // date variables
     int current_hour, current_min, current_sec; // time variables
     float latitude, longitude, magnitude, depth; // sensor reading variables
-    int my_rank; // rank of process that created record
+    int my_rank, x_coord, y_coord; // rank of process that created record, as well as (x,y) coordinate of the sensor
 } Record;
 
 typedef struct {
@@ -41,7 +41,7 @@ typedef struct {
 } Report;
 
 void PrintRecord(Record*);
-Record GenerateRecord(int sensor_rank);
+Record GenerateRecord(int sensor_rank, int x_coordinate, int y_coordinate);
 int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep);
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]);

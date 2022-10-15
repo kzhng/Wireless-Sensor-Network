@@ -28,12 +28,12 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // dims[1] = ncols;
 
     // create custom MPI datatype for Record
-    const int nitems = 11;
-    int blocklengths[11] = {1,1,1,1,1,1,1,1,1,1,1};
-    MPI_Datatype types[11] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT};
+    const int nitems = 13;
+    int blocklengths[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype types[13] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
     MPI_Datatype mpi_record_type;
     
-    MPI_Aint offsets[11];
+    MPI_Aint offsets[13];
     offsets[0] = offsetof(Record, current_year);
     offsets[1] = offsetof(Record, current_month);
     offsets[2] = offsetof(Record, current_day);
@@ -45,6 +45,8 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     offsets[8] = offsetof(Record, magnitude);
     offsets[9] = offsetof(Record, depth);
     offsets[10] = offsetof(Record, my_rank);
+    offsets[11] = offsetof(Record, x_coord);
+    offsets[12] = offsetof(Record, y_coord);
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
@@ -97,7 +99,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
         // every 5 seconds
         if(deltaTime == secondsToDelay){
             // generate random records
-            Record my_record = GenerateRecord(sensor_rank);
+            Record my_record = GenerateRecord(sensor_rank, coord[0], coord[1]);
 
             printf("rank (%d)(1) Printing record: ", my_record.my_rank);
             PrintRecord(&my_record);
@@ -213,7 +215,7 @@ void PrintRecord(Record *record) {
     record->latitude, record->longitude, record->magnitude, record->depth);
 }
 
-Record GenerateRecord(int sensor_rank) {
+Record GenerateRecord(int sensor_rank,int x_coord, int y_coord) {
     float base_lat = -15.0;
     float base_long = 167.0;
     float base_mag = 6.0;
@@ -238,7 +240,7 @@ Record GenerateRecord(int sensor_rank) {
 
     // create record TODO: create function
     Record my_record = {current_year, current_month, current_day,
-    current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, sensor_rank};
+    current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, sensor_rank, x_coord, y_coord};
 
     return my_record;
 }
