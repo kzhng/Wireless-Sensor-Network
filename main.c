@@ -14,14 +14,17 @@ int main(int argc, char *argv[]) {
     // arguments
     int nrows, ncols;
     int dims[NDIMS];
+    // number of iterations specified by the user
+    int num_iters;
     // initialise MPI Environment
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     // process command line arguments
-    if (argc == 3) { // TODO: Take in input for thresholds
+    if (argc == 4) { // TODO: Take in input for thresholds
         nrows = atoi(argv[1]);
         ncols = atoi(argv[2]);
+        num_iters = atoi(argv[3]);
         dims[0] = nrows; // number of rows
         dims[1] = ncols;
         if ((nrows*ncols) != size-1) {
@@ -40,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     if (color) {// if last process
         // base station node
-        base_station(MPI_COMM_WORLD, sensor_comm);
+        base_station(MPI_COMM_WORLD, sensor_comm, num_iters);
     }
     else {
         // sensor node

@@ -5,7 +5,7 @@
 #define MSG_SEND 1
 #define MSG_EXIT 2
 
-int base_station(MPI_Comm master_comm, MPI_Comm slave_comm) {
+int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) {
     int i;
     int size,sensors_alive;
     int *recv_array[10];
@@ -15,6 +15,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm) {
     
     sensors_alive = size;
     
+    printf("NUMBER OF ITERATIONS SPECIFIED BY USER: %d\n", num_iterations);
 
     // log file for base station
     FILE *fp;

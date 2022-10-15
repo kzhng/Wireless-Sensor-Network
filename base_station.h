@@ -6,6 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int base_station(MPI_Comm master_comm, MPI_Comm comm);
+int base_station(MPI_Comm master_comm, MPI_Comm comm, int num_iterations);
 
 #endif // BASE_STATION_H
