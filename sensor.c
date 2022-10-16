@@ -126,7 +126,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 if (neighbours_matching >= 2) {
                     printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", sensor_rank, neighbours_matching);
                     // creating report to send to base station
-                    myReport.log_time = clock();
+                    myReport.alert_time = time(NULL);
                     myReport.nbr_match = neighbours_matching;
                     myReport.rep_rec = my_record;
                     // TODO: Check if record is valid/rank is valid
