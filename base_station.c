@@ -17,25 +17,26 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     MPI_Comm_size(slave_comm, &size);
 
     // create custom MPI datatype for Record
-    const int nitems = 13;
-    int blocklengths[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
-    MPI_Datatype types[13] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
+    const int nitems = 14;
+    int blocklengths[14] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype types[14] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
     MPI_Datatype mpi_record_type;
     
-    MPI_Aint offsets[13];
+    MPI_Aint offsets[14];
     offsets[0] = offsetof(Record, current_year);
     offsets[1] = offsetof(Record, current_month);
-    offsets[2] = offsetof(Record, current_day);
-    offsets[3] = offsetof(Record, current_hour);
-    offsets[4] = offsetof(Record, current_min);
-    offsets[5] = offsetof(Record, current_sec);
-    offsets[6] = offsetof(Record, latitude);
-    offsets[7] = offsetof(Record, longitude);
-    offsets[8] = offsetof(Record, magnitude);
-    offsets[9] = offsetof(Record, depth);
-    offsets[10] = offsetof(Record, my_rank);
-    offsets[11] = offsetof(Record, x_coord);
-    offsets[12] = offsetof(Record, y_coord);
+    offsets[2] = offsetof(Record, current_date);
+    offsets[3] = offsetof(Record, current_day);
+    offsets[4] = offsetof(Record, current_hour);
+    offsets[5] = offsetof(Record, current_min);
+    offsets[6] = offsetof(Record, current_sec);
+    offsets[7] = offsetof(Record, latitude);
+    offsets[8] = offsetof(Record, longitude);
+    offsets[9] = offsetof(Record, magnitude);
+    offsets[10] = offsetof(Record, depth);
+    offsets[11] = offsetof(Record, my_rank);
+    offsets[12] = offsetof(Record, x_coord);
+    offsets[13] = offsetof(Record, y_coord);
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
@@ -56,7 +57,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
     Report recv_report;
-    time_t log_time;
+    time_t logging_time;
     int neighbours_matched;
     Record reporting_node;
     Record top_node;
@@ -76,6 +77,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     sensors_alive--;
                 break;
                 case MSG_SEND:
+                    logging_time = recv_report.log_time;
                     reporting_node = recv_report.rep_rec;
                     top_node = recv_report.top_rec;
                     left_node = recv_report.left_rec;
@@ -94,8 +96,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", left_node.my_rank, left_node.x_coord, left_node.y_coord, left_node.latitude, left_node.longitude, left_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", right_node.my_rank, right_node.x_coord, right_node.y_coord, right_node.latitude, right_node.longitude, right_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", bot_node.my_rank, bot_node.x_coord, bot_node.y_coord, bot_node.latitude, bot_node.longitude, bot_node.magnitude);
-                    fprintf(fp, "\nBalloon seismic reporting time: \n");
-                    fprintf(fp, "Balloon seismic reporting Coord:(%.2f,%.2f)\n", balloon.latitude, balloon_latitude);
+                    fprintf(fp, "\nBalloon seismic reporting time: %s %d-%d-%d %02d:%02d:%02d\n", getWday(balloon.current_day), balloon.current_year, balloon.current_month, balloon.current_date, balloon.current_hour, balloon.current_min, balloon.current_sec);
+                    fprintf(fp, "Balloon seismic reporting Coord: (%.2f,%.2f)\n", balloon.latitude, balloon.longitude);
                     fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): \n");
                     fprintf(fp, "Balloon seismic reporting Magnitude: %.2f\n", balloon.magnitude);
                     fprintf(fp, "Balloon seismic reporting Magnitude Diff with Reporting Node: \n");
@@ -123,4 +125,29 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     // Join
     pthread_join(tid, NULL);
     return 0;
+}
+
+char* getWday(int wday) {
+    switch (wday) {
+        case 0:
+            return "Sun";
+
+        case 1:
+            return "Mon";
+
+        case 2:
+            return "Tue";
+
+        case 3:
+            return "Wed";
+
+        case 4:
+            return "Thu";
+
+        case 5:
+            return "Fri";
+
+        case 6:
+            return "Sat";
+    }
 }

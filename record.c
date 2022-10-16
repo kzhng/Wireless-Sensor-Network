@@ -2,7 +2,7 @@
 
 void PrintRecord(Record *record) {
     printf("rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
-    record->current_year, record->current_month, record->current_day,
+    record->current_year, record->current_month, record->current_date,
     record->current_hour, record->current_min, record->current_sec,
     record->latitude, record->longitude, record->magnitude, record->depth);
 }
@@ -25,13 +25,14 @@ Record GenerateRecord(int sensor_rank,int x_coord, int y_coord) {
 
     int current_year = current_time->tm_year + 1900;
     int current_month = current_time->tm_mon + 1;
-    int current_day = current_time->tm_mday;
+    int current_date = current_time->tm_mday;
+    int current_day = current_time->tm_wday;
     int current_hour = current_time->tm_hour;
     int current_min = current_time->tm_min;
     int current_sec = current_time->tm_sec;
 
     // create record TODO: create function
-    Record my_record = {current_year, current_month, current_day,
+    Record my_record = {current_year, current_month, current_date, current_day,
     current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, sensor_rank, x_coord, y_coord};
 
     return my_record;

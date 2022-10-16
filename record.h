@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 typedef struct {
-    int current_year, current_month, current_day; // date variables
+    int current_year, current_month, current_date, current_day; // date variables
     int current_hour, current_min, current_sec; // time variables
     float latitude, longitude, magnitude, depth; // sensor reading variables
     int my_rank, x_coord, y_coord; // rank of process that created record, as well as (x,y) coordinate of the sensor

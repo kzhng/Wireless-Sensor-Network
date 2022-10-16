@@ -9,7 +9,7 @@ void* balloon(void *pArg) {
     pthread_mutex_t gMutex;
     clock_t TimeZero = clock();
     double deltaTime = 0;
-    double secondsToDelay = 5;
+    double secondsToDelay = 2;
     bool exit = false;
     int index = 0;
     int i;
