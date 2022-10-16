@@ -13,6 +13,6 @@
 #include <stddef.h>
 
 int base_station(MPI_Comm master_comm, MPI_Comm comm, int num_iterations);
-char* getWday(int wday);
+char* getWDay(int wday);
 
 #endif // BASE_STATION_H

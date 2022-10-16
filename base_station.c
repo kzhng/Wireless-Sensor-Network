@@ -96,7 +96,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", left_node.my_rank, left_node.x_coord, left_node.y_coord, left_node.latitude, left_node.longitude, left_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", right_node.my_rank, right_node.x_coord, right_node.y_coord, right_node.latitude, right_node.longitude, right_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", bot_node.my_rank, bot_node.x_coord, bot_node.y_coord, bot_node.latitude, bot_node.longitude, bot_node.magnitude);
-                    fprintf(fp, "\nBalloon seismic reporting time: %s %d-%d-%d %02d:%02d:%02d\n", getWday(balloon.current_day), balloon.current_year, balloon.current_month, balloon.current_date, balloon.current_hour, balloon.current_min, balloon.current_sec);
+                    fprintf(fp, "\nBalloon seismic reporting time: %s %d-%d-%d %02d:%02d:%02d\n", getWDay(balloon.current_day), balloon.current_year, balloon.current_month, balloon.current_date, balloon.current_hour, balloon.current_min, balloon.current_sec);
                     fprintf(fp, "Balloon seismic reporting Coord: (%.2f,%.2f)\n", balloon.latitude, balloon.longitude);
                     fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): \n");
                     fprintf(fp, "Balloon seismic reporting Magnitude: %.2f\n", balloon.magnitude);
@@ -127,7 +127,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     return 0;
 }
 
-char* getWday(int wday) {
+char* getWDay(int wday) {
     switch (wday) {
         case 0:
             return "Sun";
