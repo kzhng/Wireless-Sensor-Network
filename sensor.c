@@ -51,15 +51,15 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
 
-    // create custom MPI datatype for Record
+ // create custom MPI datatype for Record
     const int rep_nitems = 7;
-    int rep_blocklengths[7] = {1,1,1,1,1,1,1};
-    MPI_Datatype rep_types[7] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
+    int rep_blocklengths[] = {1,1,1,1,1,1,1};
+    MPI_Datatype rep_types[7] = {MPI_CHAR, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
     MPI_Datatype mpi_report_type;
     
     MPI_Aint rep_offsets[7];
-    rep_offsets[0] = sizeof(clock_t);
-    rep_offsets[1] = sizeof(int);
+    rep_offsets[0] = offsetof(Report, log_time);
+    rep_offsets[1] = offsetof(Report, nbr_match);
     rep_offsets[2] = offsetof(Report, rep_rec);
     rep_offsets[3] = offsetof(Report, top_rec);
     rep_offsets[4] = offsetof(Report, left_rec);
@@ -69,6 +69,8 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
 
     MPI_Type_create_struct(rep_nitems, rep_blocklengths, rep_offsets, rep_types, &mpi_report_type);
     MPI_Type_commit(&mpi_report_type);
+
+    MPI_Barrier(sensor_comm);
 
     // create cartesian topology for processes
     MPI_Dims_create(sensor_size, ndims, dims);

@@ -30,7 +30,7 @@ typedef struct {
 } Record;
 
 typedef struct {
-        time_t log_time;
+        clock_t log_time;
         int nbr_match;
         Record rep_rec;
         Record top_rec;
