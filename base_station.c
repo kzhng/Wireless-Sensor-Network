@@ -31,8 +31,10 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     pthread_t tid;
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
+    
+    time_t alert_timing;
+    struct tm* alert_time;
     Report recv_report;
-    time_t logging_time;
     int neighbours_matched;
     Record reporting_node;
     Record top_node;
@@ -52,7 +54,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     sensors_alive--;
                 break;
                 case MSG_SEND:
-                    logging_time = recv_report.alert_time;
+                    alert_timing = recv_report.alert_time;
+                    alert_time = localtime(&alert_timing);
+
                     reporting_node = recv_report.rep_rec;
                     top_node = recv_report.top_rec;
                     left_node = recv_report.left_rec;
@@ -62,7 +66,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     fprintf(fp, "Iteration: \n");
                     fprintf(fp, "Logged time: \n");
-                    fprintf(fp, "Alert reported time: \n");
+                    fprintf(fp, "Alert reported time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(alert_time->tm_wday), alert_time->tm_year + 1900, alert_time->tm_mon + 1, alert_time->tm_mday, alert_time->tm_hour, alert_time->tm_min, alert_time->tm_sec);
+
                     fprintf(fp, "Alert type: \n");
                     fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   IPv4\n");
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude);
@@ -71,7 +76,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", left_node.my_rank, left_node.x_coord, left_node.y_coord, left_node.latitude, left_node.longitude, left_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", right_node.my_rank, right_node.x_coord, right_node.y_coord, right_node.latitude, right_node.longitude, right_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", bot_node.my_rank, bot_node.x_coord, bot_node.y_coord, bot_node.latitude, bot_node.longitude, bot_node.magnitude);
-                    fprintf(fp, "\nBalloon seismic reporting time: %s %d-%d-%d %02d:%02d:%02d\n", getWDay(balloon.current_day), balloon.current_year, balloon.current_month, balloon.current_date, balloon.current_hour, balloon.current_min, balloon.current_sec);
+                    fprintf(fp, "\nBalloon seismic reporting time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(balloon.current_day), balloon.current_year, balloon.current_month, balloon.current_date, balloon.current_hour, balloon.current_min, balloon.current_sec);
                     fprintf(fp, "Balloon seismic reporting Coord: (%.2f,%.2f)\n", balloon.latitude, balloon.longitude);
                     fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): \n");
                     fprintf(fp, "Balloon seismic reporting Magnitude: %.2f\n", balloon.magnitude);
