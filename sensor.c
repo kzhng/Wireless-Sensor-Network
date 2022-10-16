@@ -105,7 +105,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
             // generate random records
             my_record = GenerateRecord(sensor_rank, coord[0], coord[1]);
 
-            printf("rank (%d)(1) Printing record: ", my_record.my_rank);
+            printf("rank (%d) Printing record: ", my_record.my_rank);
             PrintRecord(&my_record);
             
             // if the generated record magnitude is greater than 3
@@ -131,7 +131,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 
                 for (int i=0; i < neighbour_count; i++) {
                     if (my_neighbours[i] >= 0) {
-                        printf("rank (%d) comparing with neighbour (%d) (%d)\n", sensor_rank, my_neighbours_records[i].my_rank, my_neighbours[i]);
+                        // printf("rank (%d) comparing with neighbour (%d) (%d)\n", sensor_rank, my_neighbours_records[i].my_rank, my_neighbours[i]);
                         // printf("rank (%d), my neighbour record: ", sensor_rank);
                         // PrintRecord(&my_neighbours_records[i]);
                         float abs_distance, delta_dep, delta_mag;
@@ -214,7 +214,7 @@ void* sensor_msg_listener(void *pArg) {
 
     while (!termination) {
         pthread_mutex_lock(&gMutex);
-        MPI_Iprobe(MPI_ANY_SOURCE, MSG_REQUEST, comm2D, &msg_request_flag, &msg_status); // check for message
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, comm2D, &msg_request_flag, &msg_status); // check for message
         if (msg_request_flag) { // if flag is true, we want to send our record to requesting neighbour
             // we send our record with this tag MSG_RECORD
             if (msg_status.MPI_TAG == MSG_REQUEST) {
