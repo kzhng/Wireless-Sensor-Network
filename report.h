@@ -4,7 +4,7 @@
 #include "record.h"
 
 typedef struct {
-        clock_t log_time;
+        time_t alert_time;
         int nbr_match;
         Record rep_rec;
         Record top_rec;
