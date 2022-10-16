@@ -5,6 +5,9 @@
 
 Record my_record = {};
 Record my_neighbours_records[4] = {0, 0, 0, 0}; // Recrds from my neighbours
+int neighbour_count = 4;
+int my_neighbours[4]; // int value of the process number of my neighbours
+
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // MPI variables
@@ -29,8 +32,6 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // int nbr_i_lo, nbr_i_hi;
     // int nbr_j_lo, nbr_j_hi;
     int neighbours_matching;
-    int neighbour_count = 4;
-    int my_neighbours[neighbour_count]; // int value of the process number of my neighbours
     MPI_Comm comm2D;
     MPI_Request request_record[neighbour_count]; // comm between sensor <-> neighbour sensor
     MPI_Status request_status[neighbour_count];
@@ -146,7 +147,6 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 
                 // TODO: if two or more neighbours have matching records (within threshold)
                 if (neighbours_matching >= 2) {
-                    // TODO: send to base station
                     printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", sensor_rank, neighbours_matching);
                     // creating report to send to base station
                     myReport.log_time = clock();
@@ -225,9 +225,21 @@ void* sensor_msg_listener(void *pArg) {
                 PrintRecord(&my_record);
             }
             if (msg_status.MPI_TAG == MSG_RECORD) {
-                // TODO: FIX INDEX that we insert at
                 printf("rank (%d) recieved a record from neighbour (%d), inserting to my_neighbour_records\n", sensor_rank, msg_status.MPI_SOURCE);
-                MPI_Irecv(&my_neighbours_records[1], 1, mpi_record_type, msg_status.MPI_SOURCE, MSG_RECORD, comm2D, &msg_request);
+                int index;
+                if (msg_status.MPI_SOURCE == my_neighbours[TOP_NBR]) {
+                    index = TOP_NBR;
+                }
+                else if (msg_status.MPI_SOURCE == my_neighbours[BTM_NBR]) {
+                    index = BTM_NBR;
+                }
+                else if (msg_status.MPI_SOURCE == my_neighbours[LFT_NBR]) {
+                    index = LFT_NBR;
+                }
+                else if (msg_status.MPI_SOURCE == my_neighbours[RGT_NBR]) {
+                    index = RGT_NBR;
+                }
+                MPI_Irecv(&my_neighbours_records[index], 1, mpi_record_type, msg_status.MPI_SOURCE, MSG_RECORD, comm2D, &msg_request);
             }
         }
         pthread_mutex_unlock(&gMutex);
