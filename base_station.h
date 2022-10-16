@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 
 int base_station(MPI_Comm master_comm, MPI_Comm comm, int num_iterations);
 

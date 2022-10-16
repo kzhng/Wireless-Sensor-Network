@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
+#include <stddef.h>
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@
 #define MSG_SEND 1
 #define MSG_EXIT 2
 
+
 typedef struct {
     int current_year, current_month, current_day; // date variables
     int current_hour, current_min, current_sec; // time variables
@@ -28,16 +30,15 @@ typedef struct {
 } Record;
 
 typedef struct {
-    enum {
-        TIME,
-        RECORD,
-        INTEGER,
-    } type;
     union {
-        time_t time;
-        Record rec; 
-        int num;
-    } value;
+        time_t log_time;
+        int nbr_match;
+        Record rep_rec;
+        Record top_rec;
+        Record left_rec;
+        Record right_rec;
+        Record bot_rec;
+    };
 } Report;
 
 void PrintRecord(Record*);

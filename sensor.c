@@ -1,5 +1,4 @@
 #include "sensor.h"
-#include <stdlib.h>
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // MPI variables
@@ -23,6 +22,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     int my_cart_rank;
     int nbr_i_lo, nbr_i_hi;
     int nbr_j_lo, nbr_j_hi;
+    int neighbours_matching;
     MPI_Comm comm2D;
     // dims[0] = nrows;
     // dims[1] = ncols;
@@ -51,11 +51,37 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
 
-    // create custom MPI datatype for Report
-    /*const int rep_nitems = 6;
-    int rep_blockslengths[6] = ;
-    MPI_Datatype rep_types[6] = {MPI_}
-    MPI_Datatype mpi_report_type;*/
+    // create custom MPI datatype for Record
+    const int rep_nitems = 7;
+    int rep_blocklengths[7] = {1,1,11,11,11,11,11};
+    MPI_Datatype rep_types[57] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
+    MPI_Datatype mpi_report_type;
+    
+    MPI_Aint rep_offsets[57];
+    rep_offsets[0] = sizeof(clock_t);
+    rep_offsets[1] = sizeof(int);
+    int a,b;
+    for (int a=1; a<6;a++){
+        for (int b=0;b<13;b++) {
+            rep_offsets[2+a*13+b] = offsetof(Record, current_year);
+            rep_offsets[3+a*13+b] = offsetof(Record, current_month);
+            rep_offsets[4+a*13+b] = offsetof(Record, current_day);
+            rep_offsets[5+a*13+b] = offsetof(Record, current_hour);
+            rep_offsets[6+a*13+b] = offsetof(Record, current_min);
+            rep_offsets[7+a*13+b] = offsetof(Record, current_sec);
+            rep_offsets[8+a*13+b] = offsetof(Record, latitude);
+            rep_offsets[9+a*13+b] = offsetof(Record, longitude);
+            rep_offsets[10+a*13+b] = offsetof(Record, magnitude);
+            rep_offsets[11+a*13+b] = offsetof(Record, depth);
+            rep_offsets[12+a*13+b] = offsetof(Record, my_rank);
+            rep_offsets[13+a*13+b] = offsetof(Record, x_coord);
+            rep_offsets[14+a*13+b] = offsetof(Record, y_coord);
+        }
+    }
+    
+
+    MPI_Type_create_struct(rep_nitems, rep_blocklengths, rep_offsets, rep_types, &mpi_report_type);
+    MPI_Type_commit(&mpi_report_type);
 
     // create cartesian topology for processes
     MPI_Dims_create(sensor_size, ndims, dims);
@@ -82,14 +108,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     bool exit = false;
     srand((unsigned int)time(NULL)+sensor_rank+1);
 
-    Record send_arr[10];
-    /*Report report_arr[10];
-    report_arr[0].type = TIME;
-    report_arr[1].type = INTEGER;
-    report_arr[2].type = RECORD;
-    report_arr[3].type = RECORD;
-    report_arr[4].type = RECORD;
-    report_arr[5].type = RECORD;*/
+    Report *myReport = (Report*)malloc(7*sizeof(Report));
 
     // TODO: change loop condition
     while (!exit) {
@@ -185,15 +204,15 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     // TODO: send to base station
                     printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", sensor_rank, neighbours_matching);
                     // creating report array
-                    /*report_arr[0].value.time = clock();
-                    report_arr[1].value.num = neighbours_matching;
-                    report_arr[2].value.rec = &my_record;
-                    report_arr[3].value.rec = &top_record;
-                    report_arr[4].value.rec = &left_record;
-                    report_arr[5].value.rec = &right_record;
-                    report_arr[6].value.rec = &bottom_record;*/
-                    //MPI_Send(&sensor_rank,1,MPI_INT,master_size-1,MSG_SEND,master_comm);
-                    MPI_Isend(&my_record,1, mpi_record_type, master_size-1,MSG_SEND, master_comm,&request);
+                    myReport->log_time = clock();
+                    myReport->nbr_match = neighbours_matching;
+                    myReport->rep_rec = my_record;
+                    myReport->top_rec = top_record;
+                    myReport->left_rec = left_record;
+                    myReport->right_rec = right_record;
+                    myReport->bot_rec = bottom_record;
+                    MPI_Isend(&myReport, 1, mpi_report_type, master_size-1, MSG_SEND, master_comm, &request);
+                    //MPI_Isend(&my_record,1, mpi_record_type, master_size-1,MSG_SEND, master_comm,&request);
                 }
                 printf("rank (%d)(8) end of output\n\n", sensor_rank);
             }

@@ -6,6 +6,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     int i;
     int size,sensors_alive;
     int flag = 0;
+    int nbrs_match;
     
     MPI_Request request;
     MPI_Status status;
@@ -34,6 +35,34 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
+
+    // create custom MPI datatype for Record
+    const int rep_nitems = 7;
+    int rep_blocklengths[7] = {1,1,11,11,11,11,11};
+    MPI_Datatype rep_types[57] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
+    MPI_Datatype mpi_report_type;
+    
+    MPI_Aint rep_offsets[57];
+    rep_offsets[0] = sizeof(clock_t);
+    rep_offsets[1] = sizeof(int);
+    int a,b;
+    for (int a=1; a<6;a++){
+        for (int b=0;b<13;b++) {
+            rep_offsets[2+a*13+b] = offsetof(Record, current_year);
+            rep_offsets[3+a*13+b] = offsetof(Record, current_month);
+            rep_offsets[4+a*13+b] = offsetof(Record, current_day);
+            rep_offsets[5+a*13+b] = offsetof(Record, current_hour);
+            rep_offsets[6+a*13+b] = offsetof(Record, current_min);
+            rep_offsets[7+a*13+b] = offsetof(Record, current_sec);
+            rep_offsets[8+a*13+b] = offsetof(Record, latitude);
+            rep_offsets[9+a*13+b] = offsetof(Record, longitude);
+            rep_offsets[10+a*13+b] = offsetof(Record, magnitude);
+            rep_offsets[11+a*13+b] = offsetof(Record, depth);
+            rep_offsets[12+a*13+b] = offsetof(Record, my_rank);
+            rep_offsets[13+a*13+b] = offsetof(Record, x_coord);
+            rep_offsets[14+a*13+b] = offsetof(Record, y_coord);
+        }
+    }
     
     sensors_alive = size;
     
@@ -50,10 +79,18 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     pthread_t tid;
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
+    Report *recv_report = (Report*)malloc(7*sizeof(Report));
+    time_t log_time;
+    int neighbours_matched;
     Record reporting_node;
+    Record top_node;
+    Record left_node;
+    Record right_node;
+    Record bot_node;
     int rep_node;
     int iters = 0;
-    MPI_Irecv(&reporting_node, 1, mpi_record_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
+    MPI_Irecv(&recv_report, 1, mpi_report_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
+    //MPI_Irecv(&reporting_node, 1, mpi_record_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     while (sensors_alive > 0) {
         MPI_Test(&request, &flag, &status);
         if (flag) {
@@ -62,8 +99,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                 case MSG_EXIT:
                     sensors_alive--;
                 break;
-
                 case MSG_SEND:
+                    reporting_node = recv_report->rep_rec;
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     fprintf(fp, "Iteration: \n");
                     fprintf(fp, "Logged time: \n");
