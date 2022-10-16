@@ -51,19 +51,6 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
 
-    /*// create custom MPI datatype for Record
-    const int rep_nitems = 7;
-    int rep_blocklengths[] = {1,1,1,1,1,1,1};
-    MPI_Datatype rep_types[] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
-    MPI_Datatype mpi_report_type;
-    
-    MPI_Aint rep_offsets[] = {offsetof(Report, log_time), offsetof(Report, nbr_match), offsetof(Report, rep_rec),
-                                offsetof(Report, top_rec), offsetof(Report, left_rec), offsetof(Report, right_rec),
-                                offsetof(Report, bot_rec)};
-
-    MPI_Type_create_struct(rep_nitems, rep_blocklengths, rep_offsets, rep_types, &mpi_report_type);
-    MPI_Type_commit(&mpi_report_type);*/
-
     // create cartesian topology for processes
     MPI_Dims_create(sensor_size, ndims, dims);
     // printf("Sensor Rank: %d. Comm Size: %d: Grid Dimension = [%d x %d] \n",sensor_rank,sensor_size,dims[0],dims[1]);
@@ -184,7 +171,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 if (neighbours_matching >= 2) {
                     // TODO: send to base station
                     printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", sensor_rank, neighbours_matching);
-                    // creating report array
+                    // creating report to send to base station
                     myReport.log_time = clock();
                     myReport.nbr_match = neighbours_matching;
                     myReport.rep_rec = my_record;
@@ -193,7 +180,6 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     myReport.right_rec = right_record;
                     myReport.bot_rec = bottom_record;
                     MPI_Isend((void *)&myReport, sizeof(myReport), MPI_BYTE, master_size-1, MSG_SEND, master_comm, &request);
-                    //MPI_Isend(&my_record,1, mpi_record_type, master_size-1,MSG_SEND, master_comm,&request);
                 }
                 printf("rank (%d)(8) end of output\n\n", sensor_rank);
             }

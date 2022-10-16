@@ -36,19 +36,6 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
 
-    /*// create custom MPI datatype for Report
-    const int rep_nitems = 7;
-    int rep_blocklengths[] = {1,1,1,1,1,1,1};
-    MPI_Datatype rep_types[] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
-    MPI_Datatype mpi_report_type;
-    
-    MPI_Aint rep_offsets[] = {offsetof(Report, log_time), offsetof(Report, nbr_match), offsetof(Report, rep_rec),
-                                offsetof(Report, top_rec), offsetof(Report, left_rec), offsetof(Report, right_rec),
-                                offsetof(Report, bot_rec)};
-
-    MPI_Type_create_struct(rep_nitems, rep_blocklengths, rep_offsets, rep_types, &mpi_report_type);
-    MPI_Type_commit(&mpi_report_type);*/
-
     sensors_alive = size;
     
     printf("NUMBER OF ITERATIONS SPECIFIED BY USER: %d\n", num_iterations);
@@ -75,7 +62,6 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     int rep_node;
     int iters = 0;
     MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
-    //MPI_Irecv(&reporting_node, 1, mpi_record_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     while (sensors_alive > 0) {
         MPI_Test(&request, &flag, &status);
         if (flag) {
