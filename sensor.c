@@ -53,31 +53,18 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
 
     // create custom MPI datatype for Record
     const int rep_nitems = 7;
-    int rep_blocklengths[7] = {1,1,11,11,11,11,11};
-    MPI_Datatype rep_types[57] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
+    int rep_blocklengths[7] = {1,1,1,1,1,1,1};
+    MPI_Datatype rep_types[7] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
     MPI_Datatype mpi_report_type;
     
-    MPI_Aint rep_offsets[57];
+    MPI_Aint rep_offsets[7];
     rep_offsets[0] = sizeof(clock_t);
     rep_offsets[1] = sizeof(int);
-    int a,b;
-    for (int a=1; a<6;a++){
-        for (int b=0;b<13;b++) {
-            rep_offsets[2+a*13+b] = offsetof(Record, current_year);
-            rep_offsets[3+a*13+b] = offsetof(Record, current_month);
-            rep_offsets[4+a*13+b] = offsetof(Record, current_day);
-            rep_offsets[5+a*13+b] = offsetof(Record, current_hour);
-            rep_offsets[6+a*13+b] = offsetof(Record, current_min);
-            rep_offsets[7+a*13+b] = offsetof(Record, current_sec);
-            rep_offsets[8+a*13+b] = offsetof(Record, latitude);
-            rep_offsets[9+a*13+b] = offsetof(Record, longitude);
-            rep_offsets[10+a*13+b] = offsetof(Record, magnitude);
-            rep_offsets[11+a*13+b] = offsetof(Record, depth);
-            rep_offsets[12+a*13+b] = offsetof(Record, my_rank);
-            rep_offsets[13+a*13+b] = offsetof(Record, x_coord);
-            rep_offsets[14+a*13+b] = offsetof(Record, y_coord);
-        }
-    }
+    rep_offsets[2] = offsetof(Report, rep_rec);
+    rep_offsets[3] = offsetof(Report, top_rec);
+    rep_offsets[4] = offsetof(Report, left_rec);
+    rep_offsets[5] = offsetof(Report, right_rec);
+    rep_offsets[6] = offsetof(Report, bot_rec);
     
 
     MPI_Type_create_struct(rep_nitems, rep_blocklengths, rep_offsets, rep_types, &mpi_report_type);

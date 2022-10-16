@@ -30,7 +30,6 @@ typedef struct {
 } Record;
 
 typedef struct {
-    union {
         time_t log_time;
         int nbr_match;
         Record rep_rec;
@@ -38,7 +37,6 @@ typedef struct {
         Record left_rec;
         Record right_rec;
         Record bot_rec;
-    };
 } Report;
 
 void PrintRecord(Record*);
