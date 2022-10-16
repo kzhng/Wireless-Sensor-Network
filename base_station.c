@@ -36,7 +36,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
     MPI_Type_commit(&mpi_record_type);
 
-    // create custom MPI datatype for Record
+    /*// create custom MPI datatype for Report
     const int rep_nitems = 7;
     int rep_blocklengths[] = {1,1,1,1,1,1,1};
     MPI_Datatype rep_types[] = {MPI_BYTE, MPI_INT, mpi_record_type, mpi_record_type, mpi_record_type, mpi_record_type};
@@ -47,7 +47,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                                 offsetof(Report, bot_rec)};
 
     MPI_Type_create_struct(rep_nitems, rep_blocklengths, rep_offsets, rep_types, &mpi_report_type);
-    MPI_Type_commit(&mpi_report_type);
+    MPI_Type_commit(&mpi_report_type);*/
 
     sensors_alive = size;
     
@@ -64,7 +64,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     pthread_t tid;
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
-    Report *recv_report = (Report*)malloc(7*sizeof(Report));
+    Report recv_report;
     time_t log_time;
     int neighbours_matched;
     Record reporting_node;
@@ -74,7 +74,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     Record bot_node;
     int rep_node;
     int iters = 0;
-    MPI_Irecv(&recv_report, 1, mpi_report_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
+    MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     //MPI_Irecv(&reporting_node, 1, mpi_record_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     while (sensors_alive > 0) {
         MPI_Test(&request, &flag, &status);
@@ -85,7 +85,11 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     sensors_alive--;
                 break;
                 case MSG_SEND:
-                    reporting_node = recv_report->rep_rec;
+                    reporting_node = recv_report.rep_rec;
+                    top_node = recv_report.top_rec;
+                    left_node = recv_report.left_rec;
+                    right_node = recv_report.right_rec;
+                    bot_node = recv_report.bot_rec;
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     fprintf(fp, "Iteration: \n");
                     fprintf(fp, "Logged time: \n");
@@ -94,9 +98,10 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   IPv4\n");
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude);
                     fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     IPv4\n");
-                    for (int i=0; i<4;i++) {
-                        fprintf(fp, "blah blah blah\n");
-                    }
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", top_node.my_rank, top_node.x_coord, top_node.y_coord, top_node.latitude, top_node.longitude, top_node.magnitude);
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", left_node.my_rank, left_node.x_coord, left_node.y_coord, left_node.latitude, left_node.longitude, left_node.magnitude);
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", right_node.my_rank, right_node.x_coord, right_node.y_coord, right_node.latitude, right_node.longitude, right_node.magnitude);
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", bot_node.my_rank, bot_node.x_coord, bot_node.y_coord, bot_node.latitude, bot_node.longitude, bot_node.magnitude);
                     fprintf(fp, "\nBalloon seismic reporting time: \n");
                     fprintf(fp, "Balloon seismic reporting Coord: \n");
                     fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): \n");
@@ -118,7 +123,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     }
                 break;
             }
-            MPI_Irecv(&reporting_node, 1, mpi_record_type, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
+            MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
         }
     }
     fclose(fp);
