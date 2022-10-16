@@ -32,6 +32,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
     
+    time_t log_timing;
+    struct tm* logging_time;
+
     time_t alert_timing;
     struct tm* alert_time;
     Report recv_report;
@@ -63,9 +66,12 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     right_node = recv_report.right_rec;
                     bot_node = recv_report.bot_rec;
                     balloon = balloon_readings[num_readings-1];
+
+                    log_timing = time(NULL);
+                    logging_time = localtime(&log_timing);
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     fprintf(fp, "Iteration: \n");
-                    fprintf(fp, "Logged time: \n");
+                    fprintf(fp, "Logged time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(logging_time->tm_wday), logging_time->tm_year + 1900, logging_time->tm_mon + 1, logging_time->tm_mday, logging_time->tm_hour, logging_time->tm_min, logging_time->tm_sec);
                     fprintf(fp, "Alert reported time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(alert_time->tm_wday), alert_time->tm_year + 1900, alert_time->tm_mon + 1, alert_time->tm_mday, alert_time->tm_hour, alert_time->tm_min, alert_time->tm_sec);
 
                     fprintf(fp, "Alert type: \n");
