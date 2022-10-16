@@ -13,16 +13,16 @@ make run // runs project
 - [x] b) Each node periodically produces a simulated sensor reading.
 - [x] c) send a request to its immediate adjacent neighbourhood nodes to acquire their readings for comparison purposes.
 - [x] d) Upon receiving the readings from its neighbourhood nodes, the node compares these readings to its own reading to check if the readings are similar
-- [ ] e) Should the difference in location and magnitude from at least two or more neighbourhood nodes
+- [x] e) Should the difference in location and magnitude from at least two or more neighbourhood nodes
 match the readings of the local node (within a threshold which you can determine), the node sends a
 report (i.e., alert) to the base station. 
 - [ ] f) The report sent to the base station should contain as much information as possible about the possible
 alert. 
 - [ ] g) Each node repeats parts (a) to (f) until upon receiving a termination message from the base station.
 Once the node receives a termination message, the node cleans up and exits.
-- [ ] h) Simulation should work for dynamic value of m x n nodes and threshold settings. At start up, the
+- [x] h) Simulation should work for dynamic value of m x n nodes and threshold settings. At start up, the
 program allows the user to specify the grid size (m x n) and threshold values.
-- [ ] i) If you are aiming for HD or upper HD: The node uses a thread (i.e., POSIX or OPENMP) to send or
+- [x] i) If you are aiming for HD or upper HD: The node uses a thread (i.e., POSIX or OPENMP) to send or
 receive MPI messages between its adjacent nodes. This thread is created by the sensor node and
 terminates properly at the end of the program.
 

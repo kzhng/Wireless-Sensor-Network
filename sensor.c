@@ -132,9 +132,6 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 
                 for (int i=0; i < neighbour_count; i++) {
                     if (my_neighbours[i] >= 0) {
-                        // printf("rank (%d) comparing with neighbour (%d) (%d)\n", sensor_rank, my_neighbours_records[i].my_rank, my_neighbours[i]);
-                        // printf("rank (%d), my neighbour record: ", sensor_rank);
-                        // PrintRecord(&my_neighbours_records[i]);
                         float abs_distance, delta_dep, delta_mag;
                         CompareRecords(&my_record, &my_neighbours_records[i], &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
 
