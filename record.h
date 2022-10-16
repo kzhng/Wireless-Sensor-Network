@@ -2,6 +2,7 @@
 #define RECORD_H
 
 #include <stddef.h>
+#include <mpi.h>
 #include <stdio.h>
 #include <math.h>
 #include <stddef.h>
@@ -16,6 +17,8 @@ typedef struct {
     float latitude, longitude, magnitude, depth; // sensor reading variables
     int my_rank, x_coord, y_coord; // rank of process that created record, as well as (x,y) coordinate of the sensor
 } Record;
+
+MPI_Datatype CreateRecordDatatype();
 
 void PrintRecord(Record*);
 Record GenerateRecord(int sensor_rank, int x_coordinate, int y_coordinate);

@@ -1,5 +1,34 @@
 #include "record.h"
 
+MPI_Datatype CreateRecordDatatype() {
+    // create custom MPI datatype for Record
+    const int nitems = 14;
+    int blocklengths[14] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype types[14] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype mpi_record_type;
+    
+    MPI_Aint offsets[14];
+    offsets[0] = offsetof(Record, current_year);
+    offsets[1] = offsetof(Record, current_month);
+    offsets[2] = offsetof(Record, current_date);
+    offsets[3] = offsetof(Record, current_day);
+    offsets[4] = offsetof(Record, current_hour);
+    offsets[5] = offsetof(Record, current_min);
+    offsets[6] = offsetof(Record, current_sec);
+    offsets[7] = offsetof(Record, latitude);
+    offsets[8] = offsetof(Record, longitude);
+    offsets[9] = offsetof(Record, magnitude);
+    offsets[10] = offsetof(Record, depth);
+    offsets[11] = offsetof(Record, my_rank);
+    offsets[12] = offsetof(Record, x_coord);
+    offsets[13] = offsetof(Record, y_coord);
+
+    MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
+    MPI_Type_commit(&mpi_record_type);
+
+    return mpi_record_type;
+}
+
 void PrintRecord(Record *record) {
     printf("rank (%d) %d %d %d %d %d %d %f %f %f %f\n", record->my_rank,
     record->current_year, record->current_month, record->current_date,
