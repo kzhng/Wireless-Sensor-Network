@@ -18,8 +18,15 @@
 #define LOWER 3
 
 #define NDIMS 2
-#define MSG_SEND 1
-#define MSG_EXIT 2
+#define MSG_SEND 1 // sensor <-> base station
+#define MSG_REQUEST 2 // sending request to neighbours
+#define MSG_RECORD 3 // sensor <-> neighbour sensor
+#define MSG_EXIT 4 // TODO: termination
+
+#define TOP_NBR 0
+#define BTM_NBR 1
+#define LFT_NBR 2
+#define RGT_NBR 3
 
 
 typedef struct {
@@ -48,5 +55,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]);
 void set_time_variables();
 double deg2rad(double);
 double distance(double lat1, double lon1, double lat2, double lon2);
+
+void* sensor_msg_listener(void *pArg);
 
 #endif // SENSOR

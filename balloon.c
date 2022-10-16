@@ -26,14 +26,14 @@ void* balloon(void *pArg) {
             }
             index = (index + 1) % BALLOON_READINGS_SIZE;
             pthread_mutex_unlock(&gMutex);
-            PrintBalloonRecord(&my_record);
+            // PrintBalloonRecord(&my_record);
 
-            printf("\nstart check for array data\n");
+            // printf("\nstart check for array data\n");
             for (int i=0; i<num_readings;i++) {
                 BalloonRecord i_record = balloon_readings[i];
-                PrintBalloonRecord(&i_record);
+                // PrintBalloonRecord(&i_record);
             }
-            printf("end check for array data\n\n");
+            // printf("end check for array data\n\n");
             //reset the clock timers
             deltaTime = clock();
             TimeZero = clock();

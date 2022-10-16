@@ -1,8 +1,14 @@
 #include "sensor.h"
+#include <mpi.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+Record my_record = {};
+Record my_neighbours_records[4] = {0, 0, 0, 0}; // Recrds from my neighbours
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // MPI variables
-    MPI_Request request;
+    MPI_Request request; // comm between base station <-> sensor
     MPI_Status status;
     int sensor_size, sensor_rank; // sensor size,rank
     int master_size, master_rank; // master size, rank
@@ -20,13 +26,14 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     int reorder;
     int ierr;
     int my_cart_rank;
-    int nbr_i_lo, nbr_i_hi;
-    int nbr_j_lo, nbr_j_hi;
+    // int nbr_i_lo, nbr_i_hi;
+    // int nbr_j_lo, nbr_j_hi;
     int neighbours_matching;
+    int neighbour_count = 4;
+    int my_neighbours[neighbour_count]; // int value of the process number of my neighbours
     MPI_Comm comm2D;
-    // dims[0] = nrows;
-    // dims[1] = ncols;
-
+    MPI_Request request_record[neighbour_count]; // comm between sensor <-> neighbour sensor
+    MPI_Status request_status[neighbour_count];
     // create custom MPI datatype for Record
     const int nitems = 13;
     int blocklengths[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
@@ -64,109 +71,79 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     MPI_Cart_coords(comm2D, sensor_rank, ndims, coord);
     // use my cartesian coordinates to find my rank in cartesian group
     MPI_Cart_rank(comm2D, coord, &my_cart_rank);
-    MPI_Cart_shift( comm2D, SHIFT_ROW, DISP, &nbr_i_lo, &nbr_i_hi);
-    MPI_Cart_shift( comm2D, SHIFT_COL, DISP, &nbr_j_lo, &nbr_j_hi);
-    printf("PW[%d]: my_cart_rank PCM[%d], my coords = (%d,%d), sensor size(%d)\n",sensor_rank, my_cart_rank, coord[0], coord[1], sensor_size);
+    MPI_Cart_shift( comm2D, SHIFT_ROW, DISP, &my_neighbours[TOP_NBR], &my_neighbours[BTM_NBR]); // top bottom
+    MPI_Cart_shift( comm2D, SHIFT_COL, DISP, &my_neighbours[LFT_NBR], &my_neighbours[RGT_NBR]); // left right
+    // printf("PW[%d]: my_cart_rank PCM[%d], my coords = (%d,%d), sensor size(%d)\n",sensor_rank, my_cart_rank, coord[0], coord[1], sensor_size);
     fflush(stdout);
 
     // timer to periodically create random records
     clock_t TimeZero = clock();
     double deltaTime = 0;
     double secondsToDelay = 5;
-    bool exit = false;
+    bool termination = false;
     srand((unsigned int)time(NULL)+sensor_rank+1);
 
     Report myReport;
+    MPI_Status msg_check_status;
+    int record_send_flag = 0;
+
+    MPI_Comm* comm_to_send = malloc(sizeof(MPI_Comm)*3);
+    pthread_t tid;
+    comm_to_send[0] = sensor_comm;
+    comm_to_send[1] = master_comm;
+    comm_to_send[2] = comm2D;
+    // send communicators to pthread
+    pthread_create(&tid, NULL, sensor_msg_listener, comm_to_send);
 
     // TODO: change loop condition
-    while (!exit) {
+    while (!termination) {
         // get delta time in seconds
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
         // every 5 seconds
         if(deltaTime == secondsToDelay){
             // generate random records
-            Record my_record = GenerateRecord(sensor_rank, coord[0], coord[1]);
+            my_record = GenerateRecord(sensor_rank, coord[0], coord[1]);
 
             printf("rank (%d)(1) Printing record: ", my_record.my_rank);
             PrintRecord(&my_record);
             
-            // Only send record to valid adjacent neighbours
-            if (nbr_i_lo >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D); // top
-            if (nbr_i_hi >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D); // bottom
-            if (nbr_j_lo >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D); // left
-            if (nbr_j_hi >= 0) ierr = MPI_Send(&my_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D); // right
-
             // if the generated record magnitude is greater than 3
             if (my_record.magnitude > 3.0) {
                 // These may need tweaking.
                 const float threshold_distance = 5000.0;
                 const float threshold_magnitude = 5.0;
                 const float threshold_depth = 5.0;
-                // send request to adjacent neighbours to acquire their readings and compare
-                Record top_record, bottom_record, left_record, right_record = {};
-                if (nbr_j_lo >= 0) ierr = MPI_Recv(&left_record, 1, mpi_record_type, nbr_j_lo, 0, comm2D, &status);
-                if (nbr_j_hi >= 0) ierr = MPI_Recv(&right_record, 1, mpi_record_type, nbr_j_hi, 0, comm2D, &status);
-                if (nbr_i_hi >= 0) ierr = MPI_Recv(&bottom_record, 1, mpi_record_type, nbr_i_hi, 0, comm2D, &status);
-                if (nbr_i_lo >= 0) ierr = MPI_Recv(&top_record, 1, mpi_record_type, nbr_i_lo, 0, comm2D, &status);
-                
+
+                // 1. send request to each neighbours
+                for (int i=0; i < neighbour_count; i++) {
+                    printf("rank (%d) sending request to neighbour (%d) for their record\n", sensor_rank, my_neighbours[i]);
+                    int req=1; // TODO: Check this
+                    MPI_Isend(&req, 1, MPI_INT, my_neighbours[i], MSG_REQUEST, comm2D, &request_record[i]);
+                }
+                printf("rank (%d) printing neighbour records:", sensor_rank);
+                PrintRecord(&my_neighbours_records[TOP_NBR]);
+                PrintRecord(&my_neighbours_records[BTM_NBR]);
+                PrintRecord(&my_neighbours_records[LFT_NBR]);
+                PrintRecord(&my_neighbours_records[RGT_NBR]);
+
                 int neighbours_matching=0; // if neighbouring records are within threshold, increment
                 
-                // recv from neighbours
-                printf("rank (%d)(2) magnitude over 3 (%f).\n", sensor_rank, my_record.magnitude);
-                printf("rank (%d)(3) Cart rank: %d. Coord: (%d, %d). Left: %d. Right: %d. Top: %d. Bottom: %d\n", sensor_rank,
-                my_cart_rank, coord[0], coord[1], nbr_j_lo, nbr_j_hi, nbr_i_lo, nbr_i_hi); 
-                if (nbr_i_lo >= 0) {
-                    printf("rank (%d)(4) top record: ", sensor_rank);
-                    PrintRecord(&top_record);
+                for (int i=0; i < neighbour_count; i++) {
+                    if (my_neighbours[i] >= 0) {
+                        printf("rank (%d) comparing with neighbour (%d) (%d)\n", sensor_rank, my_neighbours_records[i].my_rank, my_neighbours[i]);
+                        // printf("rank (%d), my neighbour record: ", sensor_rank);
+                        // PrintRecord(&my_neighbours_records[i]);
+                        float abs_distance, delta_dep, delta_mag;
+                        CompareRecords(&my_record, &my_neighbours_records[i], &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
 
-                    float abs_distance, delta_dep, delta_mag;
-                    CompareRecords(&my_record, &top_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
-
-                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
-                        // the two records are reasonably accurate in comparison to each other
-                        neighbours_matching++;
+                        if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
+                            // the two records are reasonably accurate in comparison to each other
+                            neighbours_matching++;
+                        }
                     }
                 }
-                if (nbr_i_hi >= 0) {
-                    printf("rank (%d)(5) bottom record: ", sensor_rank);
-                    PrintRecord(&bottom_record);
-                    // compare readings
-                    float abs_distance, delta_dep, delta_mag;
-                    CompareRecords(&my_record, &bottom_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
-
-                    // if records are outside of acceptable threshold, send to base station
-                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
-                        // the two records are reasonably accurate in comparison to each other
-                        neighbours_matching++;
-                    }
-                }
-                if (nbr_j_lo >= 0) {
-                    printf("rank (%d)(6) left record: ", sensor_rank);
-                    PrintRecord(&left_record);
-                    // compare readings
-                    float abs_distance, delta_dep, delta_mag;
-                    CompareRecords(&my_record, &left_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
-
-                    // if records are outside of acceptable threshold, send to base station
-                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
-                        // the two records are reasonably accurate in comparison to each other
-                        neighbours_matching++;
-                    }
-                }
-                if (nbr_j_hi >= 0) {
-                    printf("rank (%d)(7) right record: ", sensor_rank);
-                    PrintRecord(&right_record);
-                    // compare readings
-                    float abs_distance, delta_dep, delta_mag;
-                    CompareRecords(&my_record, &right_record, &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
-
-                    // if records are outside of acceptable threshold, send to base station
-                    if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
-                        // the two records are reasonably accurate in comparison to each other
-                        neighbours_matching++;
-                    }
-                }
+                
                 // TODO: if two or more neighbours have matching records (within threshold)
                 if (neighbours_matching >= 2) {
                     // TODO: send to base station
@@ -175,13 +152,14 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     myReport.log_time = clock();
                     myReport.nbr_match = neighbours_matching;
                     myReport.rep_rec = my_record;
-                    myReport.top_rec = top_record;
-                    myReport.left_rec = left_record;
-                    myReport.right_rec = right_record;
-                    myReport.bot_rec = bottom_record;
+                    // TODO: Check if record is valid/rank is valid
+                    myReport.top_rec = my_neighbours_records[TOP_NBR];
+                    myReport.left_rec = my_neighbours_records[LFT_NBR];
+                    myReport.right_rec = my_neighbours_records[RGT_NBR];
+                    myReport.bot_rec = my_neighbours_records[BTM_NBR];
                     MPI_Isend((void *)&myReport, sizeof(myReport), MPI_BYTE, master_size-1, MSG_SEND, master_comm, &request);
                 }
-                printf("rank (%d)(8) end of output\n\n", sensor_rank);
+                // printf("rank (%d)(8) end of output\n\n", sensor_rank);
             }
 
             //reset the clock timers
@@ -190,6 +168,70 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
         }
     }
 
+    pthread_join(tid, NULL);
+    return EXIT_SUCCESS;
+}
+
+void* sensor_msg_listener(void *pArg) {
+    pthread_mutex_t gMutex;
+    // create custom MPI datatype for Record
+    const int nitems = 13;
+    int blocklengths[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype types[13] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype mpi_record_type;
+    
+    MPI_Aint offsets[13];
+    offsets[0] = offsetof(Record, current_year);
+    offsets[1] = offsetof(Record, current_month);
+    offsets[2] = offsetof(Record, current_day);
+    offsets[3] = offsetof(Record, current_hour);
+    offsets[4] = offsetof(Record, current_min);
+    offsets[5] = offsetof(Record, current_sec);
+    offsets[6] = offsetof(Record, latitude);
+    offsets[7] = offsetof(Record, longitude);
+    offsets[8] = offsetof(Record, magnitude);
+    offsets[9] = offsetof(Record, depth);
+    offsets[10] = offsetof(Record, my_rank);
+    offsets[11] = offsetof(Record, x_coord);
+    offsets[12] = offsetof(Record, y_coord);
+
+    MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_record_type);
+    MPI_Type_commit(&mpi_record_type);
+    
+    MPI_Status msg_status;
+    MPI_Request msg_request;
+    MPI_Comm* comms = (MPI_Comm*)pArg;
+    MPI_Comm sensor_comm = comms[0];
+    MPI_Comm master_comm = comms[1];
+    MPI_Comm comm2D = comms[2];
+    int sensor_rank;
+    MPI_Comm_rank(sensor_comm, &sensor_rank);
+
+
+    int msg_request_flag = 0;
+    int req;
+    bool termination = false;
+
+    while (!termination) {
+        pthread_mutex_lock(&gMutex);
+        MPI_Iprobe(MPI_ANY_SOURCE, MSG_REQUEST, comm2D, &msg_request_flag, &msg_status); // check for message
+        if (msg_request_flag) { // if flag is true, we want to send our record to requesting neighbour
+            // we send our record with this tag MSG_RECORD
+            if (msg_status.MPI_TAG == MSG_REQUEST) {
+                printf("rank (%d) recieved MSG_REQUEST from neighbour (%d)\n", sensor_rank, msg_status.MPI_SOURCE);
+                MPI_Recv(&req, 1, MPI_INT, msg_status.MPI_SOURCE, MSG_REQUEST, comm2D, MPI_STATUS_IGNORE); // recv request
+                MPI_Send(&my_record, 1, mpi_record_type, msg_status.MPI_SOURCE, MSG_RECORD, comm2D); // send record
+                printf("rank (%d) sending my record to neighbour (%d) with tag MSG_RECORD, my record is:\n", sensor_rank, msg_status.MPI_SOURCE);
+                PrintRecord(&my_record);
+            }
+            if (msg_status.MPI_TAG == MSG_RECORD) {
+                // TODO: FIX INDEX that we insert at
+                printf("rank (%d) recieved a record from neighbour (%d), inserting to my_neighbour_records\n", sensor_rank, msg_status.MPI_SOURCE);
+                MPI_Irecv(&my_neighbours_records[1], 1, mpi_record_type, msg_status.MPI_SOURCE, MSG_RECORD, comm2D, &msg_request);
+            }
+        }
+        pthread_mutex_unlock(&gMutex);
+    }
 
     return EXIT_SUCCESS;
 }
@@ -238,19 +280,19 @@ int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, fl
     nbr_lat = other_record->latitude;
     nbr_lon = other_record->longitude;
     *abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-    printf("rank (%d) absolute difference from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *abs_distance);
+    // printf("rank (%d) absolute difference from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *abs_distance);
     // compute absolute difference of magnitude between records
     float my_mag, nbr_mag;
     my_mag = my_record->magnitude;
     nbr_mag = other_record->magnitude;
     *delta_mag = fabs(my_mag-nbr_mag);
-    printf("rank (%d) magnitude diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_mag);
+    // printf("rank (%d) magnitude diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_mag);
     // compute absolute difference of depth between records
     float my_dep, nbr_dep;
     my_dep = my_record->depth;
     nbr_dep = other_record->depth;
     *delta_dep = fabs(my_dep-nbr_dep);
-    printf("rank (%d) depth diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_dep);
+    // printf("rank (%d) depth diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_dep);
 
     return 0; // TODO: Change this
 }

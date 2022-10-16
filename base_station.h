@@ -2,7 +2,7 @@
 #define BASE_STATION_H
 
 #define MSG_SEND 1
-#define MSG_EXIT 2
+#define MSG_EXIT 4
 
 #include <mpi.h>
 #include <pthread.h>
