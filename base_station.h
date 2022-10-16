@@ -4,6 +4,8 @@
 #define MSG_SEND 1
 #define MSG_EXIT 4
 
+#define BALLOON_READINGS_SIZE 10
+
 #include <mpi.h>
 #include <pthread.h>
 #include <stdlib.h>

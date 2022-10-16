@@ -1,6 +1,10 @@
 #include "base_station.h"
 #include "balloon.h"
 #include "sensor.h"
+#include "record.h"
+
+Record balloon_readings[BALLOON_READINGS_SIZE];
+int num_readings = 0;
 
 int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) {
     int i;
@@ -59,6 +63,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     Record left_node;
     Record right_node;
     Record bot_node;
+    Record balloon;
     int rep_node;
     int iters = 0;
     MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
@@ -76,6 +81,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     left_node = recv_report.left_rec;
                     right_node = recv_report.right_rec;
                     bot_node = recv_report.bot_rec;
+                    balloon = balloon_readings[num_readings-1];
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     fprintf(fp, "Iteration: \n");
                     fprintf(fp, "Logged time: \n");
@@ -89,9 +95,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", right_node.my_rank, right_node.x_coord, right_node.y_coord, right_node.latitude, right_node.longitude, right_node.magnitude);
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", bot_node.my_rank, bot_node.x_coord, bot_node.y_coord, bot_node.latitude, bot_node.longitude, bot_node.magnitude);
                     fprintf(fp, "\nBalloon seismic reporting time: \n");
-                    fprintf(fp, "Balloon seismic reporting Coord: \n");
+                    fprintf(fp, "Balloon seismic reporting Coord:(%.2f,%.2f)\n", balloon.latitude, balloon_latitude);
                     fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): \n");
-                    fprintf(fp, "Balloon seismic reporting Magnitude: \n");
+                    fprintf(fp, "Balloon seismic reporting Magnitude: %.2f\n", balloon.magnitude);
                     fprintf(fp, "Balloon seismic reporting Magnitude Diff with Reporting Node: \n");
                     
                     fprintf(fp, "\nCommunication time (seconds): \n");
