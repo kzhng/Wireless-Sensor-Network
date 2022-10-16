@@ -7,7 +7,7 @@
 Record my_record = {};
 Record my_neighbours_records[4] = {0, 0, 0, 0}; // Recrds from my neighbours
 int neighbour_count = 4;
-int my_neighbours[4]; // int value of the process number of my neighbours
+int my_neighbours[4] = {-1,-1,-1,-1}; // int value of the process number of my neighbours
 
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
@@ -30,8 +30,8 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     int reorder;
     int ierr;
     int my_cart_rank;
-    // int nbr_i_lo, nbr_i_hi;
-    // int nbr_j_lo, nbr_j_hi;
+    int nbr_top, nbr_left;
+    int nbr_right, nbr_bot;
     int neighbours_matching;
     MPI_Comm comm2D;
     MPI_Request request_record[neighbour_count]; // comm between sensor <-> neighbour sensor
@@ -56,6 +56,11 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     MPI_Cart_shift( comm2D, SHIFT_COL, DISP, &my_neighbours[LFT_NBR], &my_neighbours[RGT_NBR]); // left right
     // printf("PW[%d]: my_cart_rank PCM[%d], my coords = (%d,%d), sensor size(%d)\n",sensor_rank, my_cart_rank, coord[0], coord[1], sensor_size);
     fflush(stdout);
+
+    nbr_top = my_neighbours[TOP_NBR];
+    nbr_left = my_neighbours[LFT_NBR];
+    nbr_right = my_neighbours[RGT_NBR];
+    nbr_bot = my_neighbours[BTM_NBR];
 
     // timer to periodically create random records
     clock_t TimeZero = clock();
@@ -134,6 +139,10 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     myReport.nbr_match = neighbours_matching;
                     myReport.rep_rec = my_record;
                     // TODO: Check if record is valid/rank is valid
+                    myReport.nbr_top = nbr_top;
+                    myReport.nbr_left = nbr_left;
+                    myReport.nbr_right = nbr_right;
+                    myReport.nbr_bot = nbr_bot;
                     myReport.top_rec = my_neighbours_records[TOP_NBR];
                     myReport.left_rec = my_neighbours_records[LFT_NBR];
                     myReport.right_rec = my_neighbours_records[RGT_NBR];

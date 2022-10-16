@@ -26,9 +26,11 @@
 #define MSG_EXIT 4 // TODO: termination
 
 #define TOP_NBR 0
-#define BTM_NBR 1
-#define LFT_NBR 2
-#define RGT_NBR 3
+#define LFT_NBR 1
+#define RGT_NBR 2
+#define BTM_NBR 3
+
+
 
 
 int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]);

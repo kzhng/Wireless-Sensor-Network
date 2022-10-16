@@ -5,6 +5,7 @@
 #define MSG_EXIT 4
 
 #define BALLOON_READINGS_SIZE 10
+#define MAX_NBRS 4
 
 #include <mpi.h>
 #include <pthread.h>

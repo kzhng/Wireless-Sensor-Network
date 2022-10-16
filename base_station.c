@@ -36,42 +36,56 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     struct tm* logging_time;
 
     clock_t send_time;
-    double comm_time;
+    clock_t recv_time;
+    long double comm_time;
 
     time_t alert_timing;
     struct tm* alert_time;
     Report recv_report;
     int neighbours_matched;
     Record reporting_node;
-    Record top_node;
-    Record left_node;
-    Record right_node;
-    Record bot_node;
+    Record nbr_node;
     Record balloon;
+
+    bool valid_nbrs[4];
+
     int rep_node;
+    int top_node;
+    int left_node;
+    int right_node;
+    int bot_node;
     int iters = 0;
+    int j,nbr_valid;
     MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     while (sensors_alive > 0) {
         MPI_Test(&request, &flag, &status);
         if (flag) {
-            send_time = recv_report.sending_time;
-            comm_time = (clock()-send_time)/CLOCKS_PER_SEC;
             switch (status.MPI_TAG) {
                 case MSG_EXIT:
                     sensors_alive--;
                 break;
                 case MSG_SEND:
+                    send_time = recv_report.sending_time;
+                    recv_time = clock();
+                    recv_time = recv_time-send_time;
+                    comm_time = ((long double)recv_time)/((long double)CLOCKS_PER_SEC);
+                    comm_time = fabs(comm_time);
+
                     alert_timing = recv_report.alert_time;
                     alert_time = localtime(&alert_timing);
 
                     iters = recv_report.iter_num;
-
                     reporting_node = recv_report.rep_rec;
-                    top_node = recv_report.top_rec;
-                    left_node = recv_report.left_rec;
-                    right_node = recv_report.right_rec;
-                    bot_node = recv_report.bot_rec;
+                    neighbours_matched = recv_report.nbr_match;
+                    top_node = recv_report.nbr_top;
+                    left_node = recv_report.nbr_left;
+                    right_node = recv_report.nbr_right;
+                    bot_node = recv_report.nbr_bot;
+
                     balloon = balloon_readings[num_readings-1];
+
+                    float dist_diff, mag_diff, depth_diff;
+                    CompareRecords(&reporting_node, &balloon, &reporting_node.my_rank, &dist_diff, &mag_diff, &depth_diff);
 
                     log_timing = time(NULL);
                     logging_time = localtime(&log_timing);
@@ -81,25 +95,50 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Alert reported time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(alert_time->tm_wday), alert_time->tm_year + 1900, alert_time->tm_mon + 1, alert_time->tm_mday, alert_time->tm_hour, alert_time->tm_min, alert_time->tm_sec);
 
                     fprintf(fp, "Alert type: \n");
-                    fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   IPv4\n");
-                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude);
-                    fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     IPv4\n");
-                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", top_node.my_rank, top_node.x_coord, top_node.y_coord, top_node.latitude, top_node.longitude, top_node.magnitude);
-                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", left_node.my_rank, left_node.x_coord, left_node.y_coord, left_node.latitude, left_node.longitude, left_node.magnitude);
-                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", right_node.my_rank, right_node.x_coord, right_node.y_coord, right_node.latitude, right_node.longitude, right_node.magnitude);
-                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                          \n", bot_node.my_rank, bot_node.x_coord, bot_node.y_coord, bot_node.latitude, bot_node.longitude, bot_node.magnitude);
+                    fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   Depth                        IPv4\n");
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                        %.2f\n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude, reporting_node.depth);
+                    fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     Depth     Diff(Depth,km)     IPv4\n");
+
+                    float nbr_distdiff=0, nbr_magdiff=0, nbr_depthdiff=0;
+                    if (top_node >=0) {
+                        nbr_node = recv_report.top_rec;
+                        CompareRecords(&reporting_node, &nbr_node, &reporting_node.my_rank, &nbr_distdiff, &nbr_magdiff, &nbr_depthdiff);
+                        fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)        %.2f             %.2f         %.2f         %.2f           %.2f\n", nbr_node.my_rank, nbr_node.x_coord, nbr_node.y_coord, nbr_node.latitude, nbr_node.longitude, nbr_distdiff, nbr_node.magnitude, nbr_magdiff, nbr_node.depth, nbr_depthdiff);
+                    }
+
+                    if (left_node >=0) {
+                        nbr_node = recv_report.left_rec;
+                        CompareRecords(&reporting_node, &nbr_node, &reporting_node.my_rank, &nbr_distdiff, &nbr_magdiff, &nbr_depthdiff);
+                        fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)        %.2f             %.2f         %.2f         %.2f           %.2f\n", nbr_node.my_rank, nbr_node.x_coord, nbr_node.y_coord, nbr_node.latitude, nbr_node.longitude, nbr_distdiff, nbr_node.magnitude, nbr_magdiff, nbr_node.depth, nbr_depthdiff);
+                    }
+
+                    if (right_node >=0) {
+                        nbr_node = recv_report.right_rec;
+                        CompareRecords(&reporting_node, &nbr_node, &reporting_node.my_rank, &nbr_distdiff, &nbr_magdiff, &nbr_depthdiff);
+                        fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)        %.2f             %.2f         %.2f         %.2f           %.2f\n", nbr_node.my_rank, nbr_node.x_coord, nbr_node.y_coord, nbr_node.latitude, nbr_node.longitude, nbr_distdiff, nbr_node.magnitude, nbr_magdiff, nbr_node.depth, nbr_depthdiff);
+                    }
+
+                    if (bot_node >=0) {
+                        nbr_node = recv_report.bot_rec;
+                        CompareRecords(&reporting_node, &nbr_node, &reporting_node.my_rank, &nbr_distdiff, &nbr_magdiff, &nbr_depthdiff);
+                        fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)        %.2f             %.2f         %.2f         %.2f           %.2f\n", nbr_node.my_rank, nbr_node.x_coord, nbr_node.y_coord, nbr_node.latitude, nbr_node.longitude, nbr_distdiff, nbr_node.magnitude, nbr_magdiff, nbr_node.depth, nbr_depthdiff);
+                    }
+                    
                     fprintf(fp, "\nBalloon seismic reporting time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(balloon.current_day), balloon.current_year, balloon.current_month, balloon.current_date, balloon.current_hour, balloon.current_min, balloon.current_sec);
                     fprintf(fp, "Balloon seismic reporting Coord: (%.2f,%.2f)\n", balloon.latitude, balloon.longitude);
-                    fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): \n");
+                    fprintf(fp, "Balloon seismic reporting Coord Diff with Reporting Node (km): %.2f\n", dist_diff);
                     fprintf(fp, "Balloon seismic reporting Magnitude: %.2f\n", balloon.magnitude);
-                    fprintf(fp, "Balloon seismic reporting Magnitude Diff with Reporting Node: \n");
-                    
-                    fprintf(fp, "\nCommunication time (seconds): %f\n", comm_time);
+                    fprintf(fp, "Balloon seismic reporting Magnitude Diff with Reporting Node: %.2f\n", mag_diff);
+                    fprintf(fp, "Balloon seismic reporting Depth (km): %.2f\n", balloon.depth);
+                    fprintf(fp, "Balloon seismic reporting Depth Diff with Reporting Node: %.2f\n", depth_diff);
+
+                    fprintf(fp, "\nCommunication time (seconds): %Lf\n", comm_time);
                     fprintf(fp, "Total messages sent between reporting node and base station: \n");
-                    fprintf(fp, "Number of adjacent matches to reporting node: \n");
+                    fprintf(fp, "Number of adjacent matches to reporting node: %d\n", neighbours_matched);
                     fprintf(fp, "Coordinate difference threshold (km): \n");
                     fprintf(fp, "Magnitude difference threshold: \n");
                     fprintf(fp, "Earthquake magnitude threshold: \n");
+                    fprintf(fp, "Depth difference threshold (km): \n");
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     iters++;
                     if (iters>3) {

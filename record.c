@@ -3,7 +3,7 @@
 MPI_Datatype CreateRecordDatatype() {
     // create custom MPI datatype for Record
     const int nitems = 14;
-    int blocklengths[14] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+    int blocklengths[14] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     MPI_Datatype types[14] = {MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT, MPI_INT, MPI_INT};
     MPI_Datatype mpi_record_type;
     

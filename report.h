@@ -8,6 +8,10 @@ typedef struct {
         clock_t sending_time;
         int iter_num;
         int nbr_match;
+        int nbr_top;
+        int nbr_left;
+        int nbr_right;
+        int nbr_bot;
         Record rep_rec;
         Record top_rec;
         Record left_rec;
