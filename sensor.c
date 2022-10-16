@@ -76,6 +76,8 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
     // send communicators to pthread
     pthread_create(&tid, NULL, sensor_msg_listener, comm_to_send);
 
+    int iter_count = 0;
+
     // TODO: change loop condition
     while (!termination) {
         // get delta time in seconds
@@ -83,6 +85,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
         
         // every 5 seconds
         if(deltaTime == secondsToDelay){
+            iter_count++;
             // generate random records
             my_record = GenerateRecord(sensor_rank, coord[0], coord[1]);
 
@@ -126,6 +129,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 if (neighbours_matching >= 2) {
                     printf("~~~ rank(%d) should send its record to base station. (%d) records matched from neighbours ~~~\n", sensor_rank, neighbours_matching);
                     // creating report to send to base station
+                    myReport.iter_num = iter_count;
                     myReport.alert_time = time(NULL);
                     myReport.nbr_match = neighbours_matching;
                     myReport.rep_rec = my_record;
@@ -134,6 +138,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                     myReport.left_rec = my_neighbours_records[LFT_NBR];
                     myReport.right_rec = my_neighbours_records[RGT_NBR];
                     myReport.bot_rec = my_neighbours_records[BTM_NBR];
+                    myReport.sending_time = clock();
                     MPI_Isend((void *)&myReport, sizeof(myReport), MPI_BYTE, master_size-1, MSG_SEND, master_comm, &request);
                 }
                 // printf("rank (%d)(8) end of output\n\n", sensor_rank);

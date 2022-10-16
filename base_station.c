@@ -35,6 +35,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     time_t log_timing;
     struct tm* logging_time;
 
+    clock_t send_time;
+    double comm_time;
+
     time_t alert_timing;
     struct tm* alert_time;
     Report recv_report;
@@ -51,7 +54,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     while (sensors_alive > 0) {
         MPI_Test(&request, &flag, &status);
         if (flag) {
-            //MPI_Recv(&reporting_node,1,mpi_record_type, MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD, &status);
+            send_time = recv_report.sending_time;
+            comm_time = (clock()-send_time)/CLOCKS_PER_SEC;
             switch (status.MPI_TAG) {
                 case MSG_EXIT:
                     sensors_alive--;
@@ -59,6 +63,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                 case MSG_SEND:
                     alert_timing = recv_report.alert_time;
                     alert_time = localtime(&alert_timing);
+
+                    iters = recv_report.iter_num;
 
                     reporting_node = recv_report.rep_rec;
                     top_node = recv_report.top_rec;
@@ -70,7 +76,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     log_timing = time(NULL);
                     logging_time = localtime(&log_timing);
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
-                    fprintf(fp, "Iteration: \n");
+                    fprintf(fp, "Iteration: %d\n", iters);
                     fprintf(fp, "Logged time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(logging_time->tm_wday), logging_time->tm_year + 1900, logging_time->tm_mon + 1, logging_time->tm_mday, logging_time->tm_hour, logging_time->tm_min, logging_time->tm_sec);
                     fprintf(fp, "Alert reported time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(alert_time->tm_wday), alert_time->tm_year + 1900, alert_time->tm_mon + 1, alert_time->tm_mday, alert_time->tm_hour, alert_time->tm_min, alert_time->tm_sec);
 
@@ -88,7 +94,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Balloon seismic reporting Magnitude: %.2f\n", balloon.magnitude);
                     fprintf(fp, "Balloon seismic reporting Magnitude Diff with Reporting Node: \n");
                     
-                    fprintf(fp, "\nCommunication time (seconds): \n");
+                    fprintf(fp, "\nCommunication time (seconds): %f\n", comm_time);
                     fprintf(fp, "Total messages sent between reporting node and base station: \n");
                     fprintf(fp, "Number of adjacent matches to reporting node: \n");
                     fprintf(fp, "Coordinate difference threshold (km): \n");

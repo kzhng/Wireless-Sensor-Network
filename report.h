@@ -5,6 +5,8 @@
 
 typedef struct {
         time_t alert_time;
+        clock_t sending_time;
+        int iter_num;
         int nbr_match;
         Record rep_rec;
         Record top_rec;
