@@ -1,5 +1,5 @@
 CC=mpicc
-CFLAGS=-fopenmp -lm
+CFLAGS=-fopenmp -lm -g
 EXE=./a2run
 SRCS=main.c base_station.c sensor.c balloon.c report.c record.c
 

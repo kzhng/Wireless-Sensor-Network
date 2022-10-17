@@ -96,6 +96,8 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
 
             printf("rank (%d) Printing record: ", my_record.my_rank);
             PrintRecord(&my_record);
+
+            // MPI_Barrier(comm2D);
             
             // if the generated record magnitude is greater than 3
             if (my_record.magnitude > 3.0) {
@@ -103,17 +105,23 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 const float threshold_distance = 5000.0;
                 const float threshold_magnitude = 5.0;
                 const float threshold_depth = 5.0;
-
+                
                 // 1. send request to each neighbours
                 for (int i=0; i < neighbour_count; i++) {
                     printf("rank (%d) sending request to neighbour (%d) for their record\n", sensor_rank, my_neighbours[i]);
                     int req=1; // TODO: Check this
                     MPI_Isend(&req, 1, MPI_INT, my_neighbours[i], MSG_REQUEST, comm2D, &request_record[i]);
                 }
+                // MPI_Waitall(4, request_record, request_status);
+                // MPI_Barrier(comm2D);
                 printf("rank (%d) printing neighbour records:", sensor_rank);
+                printf("rank (%d) printing top nbr record with rank (%d): ", sensor_rank, my_neighbours[TOP_NBR]);
                 PrintRecord(&my_neighbours_records[TOP_NBR]);
+                printf("rank (%d) printing btm nbr record with rank (%d): ", sensor_rank, my_neighbours[BTM_NBR]);
                 PrintRecord(&my_neighbours_records[BTM_NBR]);
+                printf("rank (%d) printing left nbr record with rank (%d): ", sensor_rank, my_neighbours[LFT_NBR]);
                 PrintRecord(&my_neighbours_records[LFT_NBR]);
+                printf("rank (%d) printing right nbr record with rank (%d): ", sensor_rank, my_neighbours[RGT_NBR]);
                 PrintRecord(&my_neighbours_records[RGT_NBR]);
 
                 int neighbours_matching=0; // if neighbouring records are within threshold, increment
@@ -152,7 +160,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 }
                 // printf("rank (%d)(8) end of output\n\n", sensor_rank);
             }
-
+            
             //reset the clock timers
             deltaTime = clock();
             TimeZero = clock();
@@ -176,22 +184,29 @@ void* sensor_msg_listener(void *pArg) {
     MPI_Comm comm2D = comms[2];
     int sensor_rank;
     MPI_Comm_rank(sensor_comm, &sensor_rank);
+    int master_size;
+    MPI_Comm_size(master_comm, &master_size);
 
-
+    int msg_recv_flag = 0;
     int msg_request_flag = 0;
     int req;
-    bool termination = false;
+    int termination = 0;
+    MPI_Status exit_status;
+    
+    MPI_Iprobe(master_size-1, MSG_EXIT, master_comm, &termination, &exit_status);
 
     while (!termination) {
-        pthread_mutex_lock(&gMutex);
+        MPI_Iprobe(master_size-1, MSG_EXIT, master_comm, &termination, &exit_status);
+        pthread_mutex_lock(&gMutex);    
         MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, comm2D, &msg_request_flag, &msg_status); // check for message
         if (msg_request_flag) { // if flag is true, we want to send our record to requesting neighbour
             // we send our record with this tag MSG_RECORD
             if (msg_status.MPI_TAG == MSG_REQUEST) {
                 printf("rank (%d) recieved MSG_REQUEST from neighbour (%d)\n", sensor_rank, msg_status.MPI_SOURCE);
                 MPI_Recv(&req, 1, MPI_INT, msg_status.MPI_SOURCE, MSG_REQUEST, comm2D, MPI_STATUS_IGNORE); // recv request
+                // MPI_Barrier(comm2D);
                 MPI_Send(&my_record, 1, mpi_record_type, msg_status.MPI_SOURCE, MSG_RECORD, comm2D); // send record
-                printf("rank (%d) sending my record to neighbour (%d) with tag MSG_RECORD, my record is:\n", sensor_rank, msg_status.MPI_SOURCE);
+                printf("rank (%d) sending my record to neighbour (%d) with tag MSG_RECORD, my record is:", sensor_rank, msg_status.MPI_SOURCE);
                 PrintRecord(&my_record);
             }
             if (msg_status.MPI_TAG == MSG_RECORD) {
