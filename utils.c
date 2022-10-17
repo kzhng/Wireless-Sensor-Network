@@ -55,5 +55,4 @@ void GetHostDetails()
     printf("Hostname: %s\n", hostbuffer);
     printf("Host IP: %s", IPbuffer);
   
-    return 0;
 }
