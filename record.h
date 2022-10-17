@@ -22,6 +22,7 @@ MPI_Datatype CreateRecordDatatype();
 
 void PrintRecord(Record*);
 Record GenerateRecord(int sensor_rank, int x_coordinate, int y_coordinate);
+Record GenerateBalloonRecord();
 int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep);
 
 double deg2rad(double);
