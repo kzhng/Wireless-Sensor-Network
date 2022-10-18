@@ -7,7 +7,7 @@ Record balloon_readings[BALLOON_READINGS_SIZE];
 int num_readings = 0;
 pthread_mutex_t gMutex;
 
-int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) {
+int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, int nrows, int ncols) {
     int i;
     int size,sensors_alive;
     int flag = 0;
@@ -32,10 +32,14 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                 MPI_Finalize();
                 return EXIT_FAILURE;
     }
+    grid_dims *dims_grid = (grid_dims *)malloc(sizeof(grid_dims));
+    dims_grid->num_rows = nrows;
+    dims_grid->num_cols = ncols;
+
     pthread_t tid;
     pthread_mutex_init(&gMutex, NULL);
     // Fork
-    pthread_create(&tid, NULL, balloon, NULL);
+    pthread_create(&tid, NULL, balloon, (void *)dims_grid);
     
     time_t log_timing;
     struct tm* logging_time;
