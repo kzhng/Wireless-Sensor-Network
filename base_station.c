@@ -18,7 +18,6 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     MPI_Comm_size(master_comm, &size);
 
     sensors_alive = size - 1;
-    printf("\n My size is %d", size-1);
 
     int msgs_array[size];
     memset(msgs_array, 0, size*sizeof(int));
@@ -101,7 +100,11 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Logged time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(logging_time->tm_wday), logging_time->tm_year + 1900, logging_time->tm_mon + 1, logging_time->tm_mday, logging_time->tm_hour, logging_time->tm_min, logging_time->tm_sec);
                     fprintf(fp, "Alert reported time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(alert_time->tm_wday), alert_time->tm_year + 1900, alert_time->tm_mon + 1, alert_time->tm_mday, alert_time->tm_hour, alert_time->tm_min, alert_time->tm_sec);
 
-                    fprintf(fp, "Alert type: \n");
+                    if (dist_diff <= THRESHOLD_DIST && mag_diff <= THRESHOLD_MAG_DIFF && depth_diff <= THRESHOLD_DEPTH) {
+                        fprintf(fp, "Alert type: Conclusive\n");
+                    }   else {
+                        fprintf(fp, "Alert type: Inconclusive\n");
+                    }
                     fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   Depth                        IPv4\n");
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                        %.2f\n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude, reporting_node.depth);
                     fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     Depth     Diff(Depth,km)     IPv4\n");
