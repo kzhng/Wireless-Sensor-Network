@@ -37,15 +37,13 @@ void PrintRecord(Record *record) {
 }
 
 Record GenerateRecord(int sensor_rank,int x_coord, int y_coord) {
-    float base_lat = -15.0;
-    float base_long = 167.0;
-    float base_mag = 6.0;
-    float base_depth = 5.0;
+    float base_lat = -37.84 + y_coord * SENSOR_BLOCK_SIZE;
+    float base_long = 144.95 + x_coord * SENSOR_BLOCK_SIZE;
 
-    float latitude = ((float)rand()/(float)(RAND_MAX)) * base_lat;
-    float longitude = ((float)rand()/(float)(RAND_MAX)) * base_long;
-    float magnitude = ((float)rand()/(float)(RAND_MAX)) * base_mag;
-    float depth = ((float)rand()/(float)(RAND_MAX)) * base_depth;
+    float latitude = MIN_DIST_DEVIATION + (MIN_DIST_DEVIATION + (float)rand() / ((float)RAND_MAX / (MAX_DIST_DEVIATION - MIN_DIST_DEVIATION))) + base_lat;
+    float longitude = MIN_DIST_DEVIATION + (MIN_DIST_DEVIATION + (float)rand() / ((float)RAND_MAX / (MAX_DIST_DEVIATION - MIN_DIST_DEVIATION))) + base_long;
+    float magnitude = MIN_MAGNITUDE + (float)rand() / ((float)RAND_MAX / (MAX_MAGNITUDE - MIN_MAGNITUDE));
+    float depth = MIN_DEPTH + (float)rand() / ((float)RAND_MAX / (MAX_DEPTH - MIN_DEPTH));
 
     time_t s;
     struct tm* current_time;

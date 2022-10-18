@@ -11,6 +11,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define ORIGIN_LATITUDE -37.8136 // Melbourne CBD latitude
+#define ORIGIN_LONGITUDE 144.9631 // Melbourne CBD longitude
+#define MIN_MAGNITUDE 2 // min earthquake magnitude reading
+#define MAX_MAGNITUDE 12 // max earthquake magnitude reading
+#define MIN_DEPTH 0 // min depth reading
+#define MAX_DEPTH 5 // max depth reading
+#define SENSOR_BLOCK_SIZE 0.5 // how far apart the sensors are between adjacent sensors
+#define MIN_DIST_DEVIATION -0.5
+#define MAX_DIST_DEVIATION 0.5
+
 typedef struct {
     int current_year, current_month, current_date, current_day; // date variables
     int current_hour, current_min, current_sec; // time variables
