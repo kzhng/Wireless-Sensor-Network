@@ -26,7 +26,7 @@ void* balloon(void *input) {
     min_long = find_min_coord(ORIGIN_LONGITUDE);
     max_long = find_max_coord(ORIGIN_LONGITUDE, nrows);
 
-    printf("hello world %d %d %f %f %f %f\n", nrows, ncols, min_lat, max_lat, min_long, max_long);
+    // printf("hello world %d %d %f %f %f %f\n", nrows, ncols, min_lat, max_lat, min_long, max_long);
     while (!exit) {
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
@@ -34,8 +34,8 @@ void* balloon(void *input) {
         if(deltaTime == secondsToDelay){
             // generate random records
             Record my_record = GenerateBalloonRecord(min_lat, max_lat, min_long, max_long);
-            printf("BALLOON PRINTING RECORD\n");
-            PrintRecord(&my_record);
+            // printf("BALLOON PRINTING RECORD\n");
+            // PrintRecord(&my_record);
             pthread_mutex_lock(&gMutex);
             queue_size = balloonQueue->size;
             if (queue_size >= BALLOON_READINGS_SIZE) {
@@ -50,7 +50,7 @@ void* balloon(void *input) {
         }
 
     }
-    printf("hello jupiter\n");
+    // printf("hello jupiter\n");
     return NULL;
 }
 

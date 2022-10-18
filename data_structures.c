@@ -19,7 +19,7 @@ Queue* createQueue(int maxSize)
 
 void Dequeue(Queue *Q) {
     if (Q->size == 0) {
-        printf("Hey! The queue seems to be empty!\n");
+        // printf("Hey! The queue seems to be empty!\n");
         return;
     } else {
         Q->size--;
@@ -34,7 +34,7 @@ void Dequeue(Queue *Q) {
 
 Record Front(Queue *Q) {
     if (Q->size == 0) {
-        printf("Hey! The queue seems to be empty!\n");
+        // printf("Hey! The queue seems to be empty!\n");
         exit(0);
     }
     return Q->elements[Q->front];
@@ -42,7 +42,7 @@ Record Front(Queue *Q) {
 
 void Enqueue(Queue *Q, Record node) {
     if (Q->size == Q->capacity) {
-        printf("Hey! The queue is too full!\n");
+        // printf("Hey! The queue is too full!\n");
 
     } else {
         Q->size++;
@@ -59,11 +59,11 @@ void Enqueue(Queue *Q, Record node) {
 
 Record View(Queue *Q, int index) {
     if (Q->size == 0) {
-        printf("Hey! The queue seems to be empty!\n");
+        // printf("Hey! The queue seems to be empty!\n");
         exit(0);
     }
     if (index > Q->size - 1) {
-        printf("invalid index\n");
+        // printf("invalid index\n");
     }
 
     return Q->elements[index];

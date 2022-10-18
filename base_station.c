@@ -18,7 +18,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
     int msgs_array[size];
     memset(msgs_array, 0, size*sizeof(int));
     
-    printf("NUMBER OF ITERATIONS SPECIFIED BY USER: %d\n", num_iterations);
+    // printf("NUMBER OF ITERATIONS SPECIFIED BY USER: %d\n", num_iterations);
 
     // log file for base station
     FILE *fp;
@@ -96,8 +96,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                     bot_node = recv_report.nbr_bot;
 
                     balloon = findClosestBalloon(reporting_node, balloonQueue);
-                    printf("BASE STATION PRINTING RECORD\n");
-                    PrintRecord(&balloon);
+                    // printf("BASE STATION PRINTING RECORD\n");
+                    // PrintRecord(&balloon);
 
                     // top_ipv4 = recv_report.top_rec.ipv4;
                     // bot_ipv4 = recv_report.bot_rec.ipv4;
@@ -214,10 +214,10 @@ Record findClosestBalloon(Record rep_node, Queue *q) {
     float min_dist = LONG_MAX;
     float abs_dist, mag_diff, depth_diff;
     max_index = q->size - 1;
-    printf("q_size %d \n", max_index);
-    printf("WHAT IS INSIDE THE QUEUE?\n");
+    // printf("q_size %d \n", max_index);
+    // printf("WHAT IS INSIDE THE QUEUE?\n");
     for (int i=0;i<max_index;i++) {
-        printf("what is i? %d\n", i);
+        // printf("what is i? %d\n", i);
         balloon_node = View(q, i);
         PrintRecord(&balloon_node);
         CompareRecords(&rep_node, &balloon_node, 0, &abs_dist, &mag_diff, &depth_diff);
