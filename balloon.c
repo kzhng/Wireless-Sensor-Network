@@ -6,14 +6,26 @@ extern Record balloon_readings[BALLOON_READINGS_SIZE];
 extern int num_readings;
 extern pthread_mutex_t gMutex;
 
-void* balloon(void *pArg) {
+void* balloon(void *input) {
     clock_t TimeZero = clock();
     double deltaTime = 0;
     double secondsToDelay = 2;
     bool exit = false;
     int index = 0;
     int i;
-    printf("hello world\n");
+    int nrows=0, ncols=0;
+
+    float min_lat=0, max_lat=0, min_long=0, max_long=0;
+
+    nrows = ((grid_dims*)input)->num_rows;
+    ncols = ((grid_dims*)input)->num_cols;
+
+    min_lat = find_min_coord(ORIGIN_LATITUDE);
+    max_lat = find_max_coord(ORIGIN_LONGITUDE, ncols);
+    min_long = find_min_coord(ORIGIN_LATITUDE);
+    max_long = find_max_coord(ORIGIN_LONGITUDE, nrows);
+
+    printf("hello world %d %d %f %f %f %f\n", nrows, ncols, min_lat, max_lat, min_long, max_long);
     while (!exit) {
         deltaTime = (clock() - TimeZero) / CLOCKS_PER_SEC;
         
@@ -44,4 +56,12 @@ void* balloon(void *pArg) {
     }
     printf("hello jupiter\n");
     return NULL;
+}
+
+float find_min_coord(int base_coord) {
+    return base_coord - SENSOR_BLOCK_SIZE;
+}
+
+float find_max_coord(int base_coord, int component) {
+    return base_coord + SENSOR_BLOCK_SIZE * (component + 1);
 }
