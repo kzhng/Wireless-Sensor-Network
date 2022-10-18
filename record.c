@@ -100,7 +100,7 @@ int CompareRecords(Record* my_record, Record* other_record,int *sensor_rank, flo
 
 int CheckRecord(Record *other_record) {
     if (other_record->current_year == 0 || other_record->current_month == 0 
-     || other_record->current_day == 0 || other_record->magnitude == MIN_MAGNITUDE || other_record->my_rank < 0) {
+     || other_record->current_day == 0 || other_record->magnitude == MIN_MAGNITUDE) {
         // false record
         // printf("other record is not valid\n");
         return 0;
