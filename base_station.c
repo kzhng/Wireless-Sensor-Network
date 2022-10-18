@@ -2,6 +2,7 @@
 #include "balloon.h"
 #include "sensor.h"
 #include "record.h"
+#include "utils.h"
 
 Record balloon_readings[BALLOON_READINGS_SIZE];
 int num_readings = 0;
@@ -66,6 +67,11 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
     int bot_node;
     int iters = 0;
     int j,nbr_valid;
+    char* top_ipv4;
+    char* bot_ipv4;
+    char* left_ipv4;
+    char* right_ipv4;
+    char* reporting_ipv4 = (char*)malloc(4); // 32bit ipv4 address
     MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     while (sensors_alive > 0) {
         MPI_Test(&request, &flag, &status);
@@ -95,6 +101,13 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
 
                     balloon = balloon_readings[num_readings-1];
 
+                    // top_ipv4 = recv_report.top_rec.ipv4;
+                    // bot_ipv4 = recv_report.bot_rec.ipv4;
+                    // left_ipv4 = recv_report.left_rec.ipv4;
+                    // right_ipv4 = recv_report.right_rec.ipv4;
+                    // reporting_ipv4 = reporting_node.ipv4;
+                    reporting_ipv4 = GetHostDetails();
+
                     CompareRecords(&reporting_node, &balloon, &reporting_node.my_rank, &dist_diff, &mag_diff, &depth_diff);
 
                     log_timing = time(NULL);
@@ -110,7 +123,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                         fprintf(fp, "Alert type: Inconclusive\n");
                     }
                     fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   Depth                        IPv4\n");
-                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                        %.2f\n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude, reporting_node.depth);
+                    fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                        %.2f                         %s\n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude, reporting_node.depth, reporting_ipv4);
                     fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     Depth     Diff(Depth,km)     IPv4\n");
 
                     float nbr_distdiff=0, nbr_magdiff=0, nbr_depthdiff=0;

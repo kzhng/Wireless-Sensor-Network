@@ -15,6 +15,6 @@
 void checkIPbuffer(char *IPbuffer);
 void checkHostEntry(struct hostent * hostentry);
 void checkHostName(int hostname);
-char* GetHostDetails(char*);
+char* GetHostDetails();
 
 #endif
