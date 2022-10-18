@@ -2,22 +2,6 @@
 
 pthread_mutex_t gMutex;
 
-Record findClosestBalloon(Record rep_node, Queue *q) {
-    Record balloon_node;
-    int q_size=0, i=0, min_index;
-    float min_dist = LONG_MAX;
-    float abs_dist;
-    q_size = q->size;
-    for (i=0;i<q_size;i++) {
-        balloon_node = q->elements[i];
-        CompareRecords(&rep_node, &balloon_node, &rep_node.my_rank, &abs_dist, NULL, NULL);
-        if (abs_dist < min_dist) {
-            min_index = i;
-        }
-    }
-    return q->elements[min_index]; 
-}
-
 int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, int nrows, int ncols) {
     int i;
     int size,sensors_alive;
@@ -222,4 +206,25 @@ char* getWDay(int wday) {
         case 6:
             return "Sat";
     }
+}
+
+Record findClosestBalloon(Record rep_node, Queue *q) {
+    Record balloon_node;
+    int i=0, max_index=1, min_loc=0;
+    float min_dist = LONG_MAX;
+    float abs_dist, mag_diff, depth_diff;
+    max_index = q->size - 1;
+    printf("q_size %d \n", max_index);
+    printf("WHAT IS INSIDE THE QUEUE?\n");
+    for (int i=0;i<max_index;i++) {
+        printf("what is i? %d\n", i);
+        balloon_node = View(q, i);
+        PrintRecord(&balloon_node);
+        CompareRecords(&rep_node, &balloon_node, 0, &abs_dist, &mag_diff, &depth_diff);
+        if (abs_dist < min_dist) {
+            abs_dist = min_dist;
+            min_loc = i;
+        }
+    }
+    return View(q,min_loc); 
 }

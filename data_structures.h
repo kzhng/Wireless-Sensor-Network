@@ -1,7 +1,6 @@
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
 
-#include "base_station.h"
 #include "balloon.h"
 #include "sensor.h"
 #include "record.h"
@@ -41,5 +40,6 @@ Queue* createQueue(int maxSize);
 void Dequeue(Queue *Q);
 Record Front(Queue *Q);
 void Enqueue(Queue *Q, Record node);
+Record View(Queue *Q, int index);
 
 #endif

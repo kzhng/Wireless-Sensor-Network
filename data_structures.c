@@ -56,3 +56,15 @@ void Enqueue(Queue *Q, Record node) {
     }
     return;
 }
+
+Record View(Queue *Q, int index) {
+    if (Q->size == 0) {
+        printf("Hey! The queue seems to be empty!\n");
+        exit(0);
+    }
+    if (index > Q->size - 1) {
+        printf("invalid index\n");
+    }
+
+    return Q->elements[index];
+}
