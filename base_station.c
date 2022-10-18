@@ -4,8 +4,6 @@
 #include "record.h"
 #include "utils.h"
 
-Record balloon_readings[BALLOON_READINGS_SIZE];
-int num_readings = 0;
 pthread_mutex_t gMutex;
 
 int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, int nrows, int ncols) {
@@ -34,9 +32,11 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                 MPI_Finalize();
                 return EXIT_FAILURE;
     }
+    Queue *balloonQueue = createQueue(BALLOON_READINGS_SIZE);
     grid_dims *dims_grid = (grid_dims *)malloc(sizeof(grid_dims));
     dims_grid->num_rows = nrows;
     dims_grid->num_cols = ncols;
+    dims_grid->q = balloonQueue;
 
     pthread_t tid;
     pthread_mutex_init(&gMutex, NULL);
@@ -99,7 +99,9 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                     right_node = recv_report.nbr_right;
                     bot_node = recv_report.nbr_bot;
 
-                    balloon = balloon_readings[num_readings-1];
+                    balloon = Front(balloonQueue);
+                    printf("BASE STATION PRINTING RECORD\n");
+                    PrintRecord(&balloon);
 
                     // top_ipv4 = recv_report.top_rec.ipv4;
                     // bot_ipv4 = recv_report.bot_rec.ipv4;
@@ -208,4 +210,61 @@ char* getWDay(int wday) {
         case 6:
             return "Sat";
     }
+}
+
+Queue* createQueue(int maxSize)
+{
+    /*Creation of a queue*/
+    Queue *Q;
+    Q = (Queue *)malloc(sizeof(Queue));
+
+    /*Properties of the queue*/
+    
+    Q->elements = malloc(sizeof(Record)*maxSize);
+    Q->capacity = maxSize;
+    Q->size = 0;
+    Q->front = 0;
+    Q->rear = -1;
+    
+    return Q;
+}
+
+void Dequeue(Queue *Q) {
+    if (Q->size == 0) {
+        printf("Hey! The queue seems to be empty!\n");
+        return;
+    } else {
+        Q->size--;
+        Q->front++;
+    }
+    /*Circular structure of the array-based Queue*/
+    if (Q->front == Q->capacity) {
+        Q->front = 0;
+    }
+    return;
+}
+
+Record Front(Queue *Q) {
+    if (Q->size == 0) {
+        printf("Hey! The queue seems to be empty!\n");
+        exit(0);
+    }
+    return Q->elements[Q->front];
+}
+
+void Enqueue(Queue *Q, Record node) {
+    if (Q->size == Q->capacity) {
+        printf("Hey! The queue is too full!\n");
+
+    } else {
+        Q->size++;
+        Q->rear++;
+        /*Circular structure of the array based queue*/
+        if(Q->rear == Q->capacity) {
+            Q->rear = 0;
+        }
+        Q->elements[Q->rear] = node;
+
+    }
+    return;
 }

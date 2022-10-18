@@ -138,3 +138,28 @@ double distance(double lat1, double lon1, double lat2, double lon2) {
 double deg2rad(double deg) {
   return (deg * M_PI / 180);
 }
+
+Record GenerateBalloonRecord(int min_lati, int max_lati, int min_longi, int max_longi) {
+  float latitude = min_lati + (float)rand() / ((float)RAND_MAX / (max_lati - min_lati));
+  float longitude = min_longi + (float)rand() / ((float)RAND_MAX / (max_longi - min_longi));
+  float magnitude = BALLOON_MIN_MAG + (float)rand() / ((float)RAND_MAX / (MAX_MAGNITUDE - BALLOON_MIN_MAG));
+  float depth = MIN_DEPTH + (float)rand() / ((float)RAND_MAX / (MAX_DEPTH - MIN_DEPTH));
+
+  time_t s;
+  struct tm* current_time;
+  s = time(NULL);
+  current_time = localtime(&s);
+
+  int current_year = current_time->tm_year + 1900;
+  int current_month = current_time->tm_mon + 1;
+  int current_date = current_time->tm_mday;
+  int current_day = current_time->tm_wday;
+  int current_hour = current_time->tm_hour;
+  int current_min = current_time->tm_min;
+  int current_sec = current_time->tm_sec;
+
+  Record my_record = {current_year, current_month, current_date, current_day,
+    current_hour, current_min, current_sec, latitude, longitude, magnitude, depth, -1, -1, -1};
+
+    return my_record;
+}

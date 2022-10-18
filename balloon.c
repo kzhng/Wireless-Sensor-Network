@@ -2,8 +2,6 @@
 #include "record.h"
 #include "base_station.h"
 
-extern Record balloon_readings[BALLOON_READINGS_SIZE];
-extern int num_readings;
 extern pthread_mutex_t gMutex;
 
 void* balloon(void *input) {
@@ -14,11 +12,14 @@ void* balloon(void *input) {
     int index = 0;
     int i;
     int nrows=0, ncols=0;
+    int queue_size=0;
+    Queue *balloonQueue;
 
     float min_lat=0, max_lat=0, min_long=0, max_long=0;
 
     nrows = ((grid_dims*)input)->num_rows;
     ncols = ((grid_dims*)input)->num_cols;
+    balloonQueue = ((grid_dims*)input)->q;
 
     min_lat = find_min_coord(ORIGIN_LATITUDE);
     max_lat = find_max_coord(ORIGIN_LATITUDE, ncols);
@@ -32,22 +33,17 @@ void* balloon(void *input) {
         // every 5 seconds
         if(deltaTime == secondsToDelay){
             // generate random records
-            Record my_record = GenerateRecord(-1,-1,-1);
+            Record my_record = GenerateBalloonRecord(min_lat, max_lat, min_long, max_long);
+            printf("BALLOON PRINTING RECORD\n");
+            PrintRecord(&my_record);
             pthread_mutex_lock(&gMutex);
-            balloon_readings[index] = my_record;
-            if (num_readings < 10) {
-                num_readings++;
+            queue_size = balloonQueue->size;
+            if (queue_size >= BALLOON_READINGS_SIZE) {
+                Dequeue(balloonQueue);
             }
-            index = (index + 1) % BALLOON_READINGS_SIZE;
+            Enqueue(balloonQueue, my_record);
             pthread_mutex_unlock(&gMutex);
-            // PrintBalloonRecord(&my_record);
 
-            // printf("\nstart check for array data\n");
-            for (int i=0; i<num_readings;i++) {
-                Record i_record = balloon_readings[i];
-                // PrintBalloonRecord(&i_record);
-            }
-            // printf("end check for array data\n\n");
             //reset the clock timers
             deltaTime = clock();
             TimeZero = clock();

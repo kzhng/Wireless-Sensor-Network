@@ -23,7 +23,8 @@
 #define THRESHOLD_DIST 200 // threshold distance difference between sensor coordinates
 #define THRESHOLD_MAG_DIFF 2.5 // threshold magnitude difference between readings
 #define THRESHOLD_DEPTH 2 // threshold depth difference between sensor depths
-#define THRESHOLD_MAG 3 //threshold earthquake magnitude that triggers a possible alert for sensors
+#define THRESHOLD_MAG 3 // threshold earthquake magnitude that triggers a possible alert for sensors
+#define BALLOON_MIN_MAG 3
 
 typedef struct {
     int current_year, current_month, current_date, current_day; // date variables
@@ -36,7 +37,7 @@ MPI_Datatype CreateRecordDatatype();
 
 void PrintRecord(Record*);
 Record GenerateRecord(int sensor_rank, int x_coordinate, int y_coordinate);
-Record GenerateBalloonRecord();
+Record GenerateBalloonRecord(int min_lati, int max_lati, int min_longi, int max_longi);
 int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep);
 int CheckRecord(Record* other_record);
 
