@@ -1,5 +1,6 @@
 #include "data_structures.h"
 
+//Queue used for storing balloon readings
 Queue* createQueue(int maxSize)
 {
     /*Creation of a queue*/

@@ -21,6 +21,7 @@ void* balloon(void *input) {
     ncols = ((grid_dims*)input)->num_cols;
     balloonQueue = ((grid_dims*)input)->q;
 
+    // determines the bounds for coordinates in location in which the balloon readings can be generated at
     min_lat = find_min_coord(ORIGIN_LATITUDE);
     max_lat = find_max_coord(ORIGIN_LATITUDE, ncols);
     min_long = find_min_coord(ORIGIN_LONGITUDE);
@@ -41,6 +42,7 @@ void* balloon(void *input) {
             if (queue_size >= BALLOON_READINGS_SIZE) {
                 Dequeue(balloonQueue);
             }
+            // adds balloon reading to queue
             Enqueue(balloonQueue, my_record);
             pthread_mutex_unlock(&gMutex);
 

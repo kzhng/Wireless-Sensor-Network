@@ -36,6 +36,7 @@ void PrintRecord(Record *record) {
     record->latitude, record->longitude, record->magnitude, record->depth);
 }
 
+// generate sensor reading
 Record GenerateRecord(int sensor_rank,int x_coord, int y_coord) {
     float base_lat = -37.84 + y_coord * SENSOR_BLOCK_SIZE;
     float base_long = 144.95 + x_coord * SENSOR_BLOCK_SIZE;
@@ -65,6 +66,7 @@ Record GenerateRecord(int sensor_rank,int x_coord, int y_coord) {
     return my_record;
 }
 
+//compares sensor readings
 int CompareRecords(Record* my_record, Record* other_record,int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep) {
     //return 1 on successful compare.
 	int compare_flag = 0;
@@ -139,6 +141,7 @@ double deg2rad(double deg) {
   return (deg * M_PI / 180);
 }
 
+// generates balloon reading
 Record GenerateBalloonRecord(int min_lati, int max_lati, int min_longi, int max_longi) {
   float latitude = min_lati + (float)rand() / ((float)RAND_MAX / (max_lati - min_lati));
   float longitude = min_longi + (float)rand() / ((float)RAND_MAX / (max_longi - min_longi));

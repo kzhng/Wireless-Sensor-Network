@@ -28,6 +28,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                 MPI_Finalize();
                 return EXIT_FAILURE;
     }
+    // queue used for storing balloon readings
     Queue *balloonQueue = createQueue(BALLOON_READINGS_SIZE);
     grid_dims *dims_grid = (grid_dims *)malloc(sizeof(grid_dims));
     dims_grid->num_rows = nrows;
@@ -70,6 +71,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
     char* reporting_ipv4 = (char*)malloc(4); // 32bit ipv4 address
     MPI_Irecv((void*)&recv_report, sizeof(recv_report), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, master_comm, &request);
     while (sensors_alive > 0) {
+        // test to see if we get a msg from any one of the sensor nodes about an alert
         MPI_Test(&request, &flag, &status);
         if (flag) {
             switch (status.MPI_TAG) {
@@ -77,6 +79,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                     sensors_alive--;
                 break;
                 case MSG_SEND:
+                    // receives information from sensor node and logs it into a log txt file
                     send_time = recv_report.sending_time;
                     recv_time = clock();
                     recv_time = recv_time-send_time;
@@ -95,6 +98,8 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                     right_node = recv_report.nbr_right;
                     bot_node = recv_report.nbr_bot;
 
+                    // the balloon reading that is closest in abs dist to the reporting node reading location 
+                    // is chosen
                     balloon = findClosestBalloon(reporting_node, balloonQueue);
                     // printf("BASE STATION PRINTING RECORD\n");
                     // PrintRecord(&balloon);
@@ -219,7 +224,7 @@ Record findClosestBalloon(Record rep_node, Queue *q) {
     for (int i=0;i<max_index;i++) {
         // printf("what is i? %d\n", i);
         balloon_node = View(q, i);
-        PrintRecord(&balloon_node);
+        //PrintRecord(&balloon_node);
         CompareRecords(&rep_node, &balloon_node, 0, &abs_dist, &mag_diff, &depth_diff);
         if (abs_dist < min_dist) {
             abs_dist = min_dist;
