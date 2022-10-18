@@ -1,10 +1,22 @@
 #include "base_station.h"
-#include "balloon.h"
-#include "sensor.h"
-#include "record.h"
-#include "utils.h"
 
 pthread_mutex_t gMutex;
+
+Record findClosestBalloon(Record rep_node, Queue *q) {
+    Record balloon_node;
+    int q_size=0, i=0, min_index;
+    float min_dist = LONG_MAX;
+    float abs_dist;
+    q_size = q->size;
+    for (i=0;i<q_size;i++) {
+        balloon_node = q->elements[i];
+        CompareRecords(&rep_node, &balloon_node, &rep_node.my_rank, &abs_dist, NULL, NULL);
+        if (abs_dist < min_dist) {
+            min_index = i;
+        }
+    }
+    return q->elements[min_index]; 
+}
 
 int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, int nrows, int ncols) {
     int i;
@@ -99,7 +111,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                     right_node = recv_report.nbr_right;
                     bot_node = recv_report.nbr_bot;
 
-                    balloon = Front(balloonQueue);
+                    balloon = findClosestBalloon(reporting_node, balloonQueue);
                     printf("BASE STATION PRINTING RECORD\n");
                     PrintRecord(&balloon);
 

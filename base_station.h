@@ -12,9 +12,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <limits.h>
 #include "data_structures.h"
+#include "balloon.h"
+#include "sensor.h"
+#include "record.h"
+#include "utils.h"
 
 int base_station(MPI_Comm master_comm, MPI_Comm comm, int num_iterations, int nrows, int ncols);
 char* getWDay(int wday);
+Record findClosestBalloon(Record rep_node, Queue *q);
 
 #endif // BASE_STATION_H

@@ -1,13 +1,11 @@
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
 
-#include "data_structures.h"
 #include "base_station.h"
 #include "balloon.h"
 #include "sensor.h"
 #include "record.h"
 #include "utils.h"
-#include "data_structures.h"
 
 typedef struct {
         time_t alert_time;
