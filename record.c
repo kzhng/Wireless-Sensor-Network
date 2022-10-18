@@ -65,28 +65,47 @@ Record GenerateRecord(int sensor_rank,int x_coord, int y_coord) {
     return my_record;
 }
 
-int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep) {
-    float my_lat, my_lon, nbr_lat, nbr_lon;
-    my_lat = my_record->latitude;
-    my_lon = my_record->longitude;
-    nbr_lat = other_record->latitude;
-    nbr_lon = other_record->longitude;
-    *abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
-    // printf("rank (%d) absolute difference from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *abs_distance);
-    // compute absolute difference of magnitude between records
-    float my_mag, nbr_mag;
-    my_mag = my_record->magnitude;
-    nbr_mag = other_record->magnitude;
-    *delta_mag = fabs(my_mag-nbr_mag);
-    // printf("rank (%d) magnitude diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_mag);
-    // compute absolute difference of depth between records
-    float my_dep, nbr_dep;
-    my_dep = my_record->depth;
-    nbr_dep = other_record->depth;
-    *delta_dep = fabs(my_dep-nbr_dep);
-    // printf("rank (%d) depth diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_dep);
+int CompareRecords(Record* my_record, Record* other_record,int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep) {
+    //return 1 on successful compare.
+	int compare_flag = 0;
+	compare_flag = CheckRecord(other_record); // check whether record is valid
+    if (compare_flag) {
+        // printf("rank (%d) compare flag true (%d)\n", my_record->my_rank, other_record->my_rank);
+        float my_lat, my_lon, nbr_lat, nbr_lon;
+        my_lat = my_record->latitude;
+        my_lon = my_record->longitude;
+        nbr_lat = other_record->latitude;
+        nbr_lon = other_record->longitude;
+        *abs_distance = distance(my_lat, my_lon, nbr_lat, nbr_lon);
+        // printf("rank (%d) absolute difference from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *abs_distance);
+        // compute absolute difference of magnitude between records
+        float my_mag, nbr_mag;
+        my_mag = my_record->magnitude;
+        nbr_mag = other_record->magnitude;
+        *delta_mag = fabs(my_mag-nbr_mag);
+        // printf("rank (%d) magnitude diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_mag);
+        // compute absolute difference of depth between records
+        float my_dep, nbr_dep;
+        my_dep = my_record->depth;
+        nbr_dep = other_record->depth;
+        *delta_dep = fabs(my_dep-nbr_dep);
+        // printf("rank (%d) depth diff from rank (%d): %f\n", *sensor_rank, other_record->my_rank, *delta_dep);
+        return 1;
+	}
+    else{
+		// other record is null record
+		return 0;
+	}
+}
 
-    return 0; // TODO: Change this
+int CheckRecord(Record *other_record) {
+    if (other_record->current_year == 0 || other_record->current_month == 0 
+     || other_record->current_day == 0 || other_record->magnitude == MIN_MAGNITUDE || other_record->my_rank < 0) {
+        // false record
+        // printf("other record is not valid\n");
+        return 0;
+    }
+    return 1;
 }
 
 // TODO: reference this correctly

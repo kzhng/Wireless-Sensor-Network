@@ -34,6 +34,7 @@ void PrintRecord(Record*);
 Record GenerateRecord(int sensor_rank, int x_coordinate, int y_coordinate);
 Record GenerateBalloonRecord();
 int CompareRecords(Record* my_record, Record* other_record, int *sensor_rank, float *abs_distance, float *delta_mag, float *delta_dep);
+int CheckRecord(Record* other_record);
 
 double deg2rad(double);
 double distance(double lat1, double lon1, double lat2, double lon2);

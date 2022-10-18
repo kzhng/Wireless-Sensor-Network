@@ -131,11 +131,13 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                 for (int i=0; i < neighbour_count; i++) {
                     if (my_neighbours[i] >= 0) {
                         float abs_distance, delta_dep, delta_mag;
-                        CompareRecords(&my_record, &my_neighbours_records[i], &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
-
-                        if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
-                            // the two records are reasonably accurate in comparison to each other
-                            neighbours_matching++;
+                        int compare_flag;
+                        compare_flag = CompareRecords(&my_record, &my_neighbours_records[i], &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
+                        if (compare_flag) {
+                            if (abs_distance < threshold_distance&&delta_mag<threshold_magnitude&&delta_dep<threshold_depth) {
+                                // the two records are reasonably accurate in comparison to each other
+                                neighbours_matching++;
+                            }
                         }
                     }
                 }
@@ -204,11 +206,11 @@ void* sensor_msg_listener(void *pArg) {
         if (msg_request_flag) { // if flag is true, we want to send our record to requesting neighbour
             // we send our record with this tag MSG_RECORD
             if (msg_status.MPI_TAG == MSG_REQUEST) {
-                // printf("rank (%d) recieved MSG_REQUEST from neighbour (%d)\n", sensor_rank, msg_status.MPI_SOURCE);
+                printf("rank (%d) recieved MSG_REQUEST from neighbour (%d)\n", sensor_rank, msg_status.MPI_SOURCE);
                 MPI_Recv(&req, 1, MPI_INT, msg_status.MPI_SOURCE, MSG_REQUEST, comm2D, MPI_STATUS_IGNORE); // recv request
                 // MPI_Barrier(comm2D);
                 MPI_Send(&my_record, 1, mpi_record_type, msg_status.MPI_SOURCE, MSG_RECORD, comm2D); // send record
-                // printf("rank (%d) sending my record to neighbour (%d) with tag MSG_RECORD, my record is:", sensor_rank, msg_status.MPI_SOURCE);
+                printf("rank (%d) sending my record to neighbour (%d) with tag MSG_RECORD, my record is:", sensor_rank, msg_status.MPI_SOURCE);
                 PrintRecord(&my_record);
             }
             if (msg_status.MPI_TAG == MSG_RECORD) {
