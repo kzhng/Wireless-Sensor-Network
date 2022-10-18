@@ -171,7 +171,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
                     fprintf(fp, "Depth difference threshold (km): 2\n");
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     iters++;
-                    if (iters>3) {
+                    if (iters>num_iterations) {
                         sensors_alive = 0;
                         fclose(fp);
                         break;
@@ -185,6 +185,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
 
     // Join
     pthread_join(tid, NULL);
+    MPI_Finalize();
     return 0;
 }
 
