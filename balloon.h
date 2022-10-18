@@ -8,7 +8,7 @@
 #include <time.h>
 
 void* balloon(void *input);
-float find_min_coord(int base_coord);
-float find_max_coord(int base_coord, int component);
+float find_min_coord(float base_coord);
+float find_max_coord(float base_coord, float component);
 
 #endif // BALLOON_H

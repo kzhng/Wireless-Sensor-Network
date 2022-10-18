@@ -12,6 +12,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
     int size,sensors_alive;
     int flag = 0;
     int nbrs_match;
+    float dist_diff, mag_diff, depth_diff;
     
     MPI_Request request;
     MPI_Status status;
@@ -94,7 +95,6 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, 
 
                     balloon = balloon_readings[num_readings-1];
 
-                    float dist_diff, mag_diff, depth_diff;
                     CompareRecords(&reporting_node, &balloon, &reporting_node.my_rank, &dist_diff, &mag_diff, &depth_diff);
 
                     log_timing = time(NULL);

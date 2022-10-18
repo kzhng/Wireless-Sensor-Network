@@ -21,8 +21,8 @@ void* balloon(void *input) {
     ncols = ((grid_dims*)input)->num_cols;
 
     min_lat = find_min_coord(ORIGIN_LATITUDE);
-    max_lat = find_max_coord(ORIGIN_LONGITUDE, ncols);
-    min_long = find_min_coord(ORIGIN_LATITUDE);
+    max_lat = find_max_coord(ORIGIN_LATITUDE, ncols);
+    min_long = find_min_coord(ORIGIN_LONGITUDE);
     max_long = find_max_coord(ORIGIN_LONGITUDE, nrows);
 
     printf("hello world %d %d %f %f %f %f\n", nrows, ncols, min_lat, max_lat, min_long, max_long);
@@ -58,10 +58,10 @@ void* balloon(void *input) {
     return NULL;
 }
 
-float find_min_coord(int base_coord) {
-    return base_coord - SENSOR_BLOCK_SIZE;
+float find_min_coord(float base_coord) {
+    return (float)(base_coord - SENSOR_BLOCK_SIZE);
 }
 
-float find_max_coord(int base_coord, int component) {
-    return base_coord + SENSOR_BLOCK_SIZE * (component + 1);
+float find_max_coord(float base_coord, float component) {
+    return (float)(base_coord + SENSOR_BLOCK_SIZE * (component + 1));
 }
