@@ -137,10 +137,10 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "\nCommunication time (seconds): %Lf\n", comm_time);
                     fprintf(fp, "Total messages sent between reporting node and base station: \n");
                     fprintf(fp, "Number of adjacent matches to reporting node: %d\n", neighbours_matched);
-                    fprintf(fp, "Coordinate difference threshold (km): \n");
-                    fprintf(fp, "Magnitude difference threshold: \n");
+                    fprintf(fp, "Coordinate difference threshold (km): 200\n");
+                    fprintf(fp, "Magnitude difference threshold: 2.5\n");
                     fprintf(fp, "Earthquake magnitude threshold: \n");
-                    fprintf(fp, "Depth difference threshold (km): \n");
+                    fprintf(fp, "Depth difference threshold (km): 2\n");
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     iters++;
                     if (iters>3) {

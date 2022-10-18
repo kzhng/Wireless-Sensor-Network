@@ -102,7 +102,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
             // MPI_Barrier(comm2D);
             
             // if the generated record magnitude is greater than 3
-            if (my_record.magnitude > 3.0) {
+            if (my_record.magnitude > THRESHOLD_MAG) {
                 // 1. send request to each neighbours
                 for (int i=0; i < neighbour_count; i++) {
                     // printf("rank (%d) sending request to neighbour (%d) for their record\n", sensor_rank, my_neighbours[i]);
@@ -128,7 +128,7 @@ int sensor_node(MPI_Comm master_comm, MPI_Comm sensor_comm, int dims[]) {
                         float abs_distance, delta_dep, delta_mag;
                         CompareRecords(&my_record, &my_neighbours_records[i], &sensor_rank, &abs_distance, &delta_mag, &delta_dep);
 
-                        if (abs_distance < THRESHOLD_DIST&&delta_mag<THRESHOLD_MAG&&delta_dep<THRESHOLD_DEPTH) {
+                        if (abs_distance < THRESHOLD_DIST&&delta_mag<THRESHOLD_MAG_DIFF&&delta_dep<THRESHOLD_DEPTH) {
                             // the two records are reasonably accurate in comparison to each other
                             neighbours_matching++;
                         }
