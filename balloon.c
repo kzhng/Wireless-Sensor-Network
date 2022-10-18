@@ -4,9 +4,9 @@
 
 extern Record balloon_readings[BALLOON_READINGS_SIZE];
 extern int num_readings;
+extern pthread_mutex_t gMutex;
 
 void* balloon(void *pArg) {
-    pthread_mutex_t gMutex;
     clock_t TimeZero = clock();
     double deltaTime = 0;
     double secondsToDelay = 2;
@@ -45,15 +45,3 @@ void* balloon(void *pArg) {
     printf("hello jupiter\n");
     return NULL;
 }
-
-/*int main() {
-    pthread_t tid;
-    pthread_mutex_init(&gMutex, NULL);
-
-    // Fork
-    pthread_create(&tid, NULL, balloon, NULL);
-
-    // Join
-    pthread_join(tid, NULL);
-    return 0;
-}*/

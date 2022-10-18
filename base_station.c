@@ -5,6 +5,7 @@
 
 Record balloon_readings[BALLOON_READINGS_SIZE];
 int num_readings = 0;
+pthread_mutex_t gMutex;
 
 int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) {
     int i;
@@ -29,6 +30,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                 return EXIT_FAILURE;
     }
     pthread_t tid;
+    pthread_mutex_init(&gMutex, NULL);
     // Fork
     pthread_create(&tid, NULL, balloon, NULL);
     
