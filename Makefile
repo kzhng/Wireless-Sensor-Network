@@ -1,7 +1,7 @@
 CC=mpicc
 CFLAGS=-fopenmp -lm -g
 EXE=./a2run
-SRCS=main.c base_station.c sensor.c balloon.c report.c record.c
+SRCS=main.c base_station.c sensor.c balloon.c report.c record.c utils.c
 
 default:
 	$(CC) $(SRCS) -o $(EXE)  $(CFLAGS)

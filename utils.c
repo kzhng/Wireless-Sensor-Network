@@ -32,9 +32,9 @@ void checkIPbuffer(char *IPbuffer)
 }
   
 // Driver code
-void GetHostDetails()
+char* GetHostDetails(char* hostbuffer)
 {
-    char hostbuffer[256];
+    // char hostbuffer[256];
     char *IPbuffer;
     struct hostent *host_entry;
     int hostname;
@@ -52,7 +52,17 @@ void GetHostDetails()
     IPbuffer = inet_ntoa(*((struct in_addr*)
                            host_entry->h_addr_list[0]));
   
-    printf("Hostname: %s\n", hostbuffer);
-    printf("Host IP: %s", IPbuffer);
-  
+    // printf("Hostname: %s\n", hostbuffer);
+    // printf("Host IP: %s", IPbuffer);
+    return IPbuffer;
 }
+
+// int main() {
+//     char *IPbuffer;
+//     char hostbuffer[256];
+
+//     IPbuffer = GetHostDetails(hostbuffer);
+    
+//     printf("Hostname: %s\n", hostbuffer);
+//     printf("Host IP: %s", IPbuffer);
+// }
