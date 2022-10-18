@@ -1,5 +1,5 @@
 #include "balloon.h"
-#include "record.h"
+#include "data_structures.h"
 #include "base_station.h"
 
 extern pthread_mutex_t gMutex;

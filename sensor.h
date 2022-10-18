@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <mpi.h>
 #include "record.h"
-#include "report.h"
+#include "data_structures.h"
 
 #define SHIFT_ROW 0
 #define SHIFT_COL 1
