@@ -15,9 +15,13 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     
     MPI_Request request;
     MPI_Status status;
-    MPI_Comm_size(slave_comm, &size);
+    MPI_Comm_size(master_comm, &size);
 
-    sensors_alive = size;
+    sensors_alive = size - 1;
+    printf("\n My size is %d", size-1);
+
+    int msgs_array[size];
+    memset(msgs_array, 0, size*sizeof(int));
     
     printf("NUMBER OF ITERATIONS SPECIFIED BY USER: %d\n", num_iterations);
 
@@ -78,6 +82,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
 
                     iters = recv_report.iter_num;
                     reporting_node = recv_report.rep_rec;
+                    msgs_array[reporting_node.my_rank]++;
                     neighbours_matched = recv_report.nbr_match;
                     top_node = recv_report.nbr_top;
                     left_node = recv_report.nbr_left;
@@ -135,7 +140,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Balloon seismic reporting Depth Diff with Reporting Node: %.2f\n", depth_diff);
 
                     fprintf(fp, "\nCommunication time (seconds): %Lf\n", comm_time);
-                    fprintf(fp, "Total messages sent between reporting node and base station: \n");
+                    fprintf(fp, "Total messages sent between reporting node and base station: %d\n", msgs_array[reporting_node.my_rank]);
                     fprintf(fp, "Number of adjacent matches to reporting node: %d\n", neighbours_matched);
                     fprintf(fp, "Coordinate difference threshold (km): 200\n");
                     fprintf(fp, "Magnitude difference threshold: 2.5\n");
