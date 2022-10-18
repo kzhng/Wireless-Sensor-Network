@@ -5,8 +5,9 @@
 
 Record balloon_readings[BALLOON_READINGS_SIZE];
 int num_readings = 0;
+pthread_mutex_t gMutex;
 
-int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) {
+int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations, int nrows, int ncols) {
     int i;
     int size,sensors_alive;
     int flag = 0;
@@ -14,9 +15,12 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
     
     MPI_Request request;
     MPI_Status status;
-    MPI_Comm_size(slave_comm, &size);
+    MPI_Comm_size(master_comm, &size);
 
-    sensors_alive = size;
+    sensors_alive = size - 1;
+
+    int msgs_array[size];
+    memset(msgs_array, 0, size*sizeof(int));
     
     printf("NUMBER OF ITERATIONS SPECIFIED BY USER: %d\n", num_iterations);
 
@@ -28,9 +32,14 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                 MPI_Finalize();
                 return EXIT_FAILURE;
     }
+    grid_dims *dims_grid = (grid_dims *)malloc(sizeof(grid_dims));
+    dims_grid->num_rows = nrows;
+    dims_grid->num_cols = ncols;
+
     pthread_t tid;
+    pthread_mutex_init(&gMutex, NULL);
     // Fork
-    pthread_create(&tid, NULL, balloon, NULL);
+    pthread_create(&tid, NULL, balloon, (void *)dims_grid);
     
     time_t log_timing;
     struct tm* logging_time;
@@ -76,6 +85,7 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
 
                     iters = recv_report.iter_num;
                     reporting_node = recv_report.rep_rec;
+                    msgs_array[reporting_node.my_rank]++;
                     neighbours_matched = recv_report.nbr_match;
                     top_node = recv_report.nbr_top;
                     left_node = recv_report.nbr_left;
@@ -94,7 +104,11 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Logged time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(logging_time->tm_wday), logging_time->tm_year + 1900, logging_time->tm_mon + 1, logging_time->tm_mday, logging_time->tm_hour, logging_time->tm_min, logging_time->tm_sec);
                     fprintf(fp, "Alert reported time: %s %d-%02d-%02d %02d:%02d:%02d\n", getWDay(alert_time->tm_wday), alert_time->tm_year + 1900, alert_time->tm_mon + 1, alert_time->tm_mday, alert_time->tm_hour, alert_time->tm_min, alert_time->tm_sec);
 
-                    fprintf(fp, "Alert type: \n");
+                    if (dist_diff <= THRESHOLD_DIST && mag_diff <= THRESHOLD_MAG_DIFF && depth_diff <= THRESHOLD_DEPTH) {
+                        fprintf(fp, "Alert type: Conclusive\n");
+                    }   else {
+                        fprintf(fp, "Alert type: Inconclusive\n");
+                    }
                     fprintf(fp, "\nReporting Node                Seismic Coord                         Magnitude                   Depth                        IPv4\n");
                     fprintf(fp, "   %d(%d,%d)                    (%.2f,%.2f)                           %.2f                        %.2f\n", reporting_node.my_rank, reporting_node.x_coord, reporting_node.y_coord, reporting_node.latitude, reporting_node.longitude, reporting_node.magnitude, reporting_node.depth);
                     fprintf(fp, "\nAdjacent Nodes                Seismic Coord     Diff(Coord,km)      Magnitude     Diff(Mag)     Depth     Diff(Depth,km)     IPv4\n");
@@ -133,12 +147,12 @@ int base_station(MPI_Comm master_comm, MPI_Comm slave_comm, int num_iterations) 
                     fprintf(fp, "Balloon seismic reporting Depth Diff with Reporting Node: %.2f\n", depth_diff);
 
                     fprintf(fp, "\nCommunication time (seconds): %Lf\n", comm_time);
-                    fprintf(fp, "Total messages sent between reporting node and base station: \n");
+                    fprintf(fp, "Total messages sent between reporting node and base station: %d\n", msgs_array[reporting_node.my_rank]);
                     fprintf(fp, "Number of adjacent matches to reporting node: %d\n", neighbours_matched);
-                    fprintf(fp, "Coordinate difference threshold (km): \n");
-                    fprintf(fp, "Magnitude difference threshold: \n");
-                    fprintf(fp, "Earthquake magnitude threshold: \n");
-                    fprintf(fp, "Depth difference threshold (km): \n");
+                    fprintf(fp, "Coordinate difference threshold (km): 200\n");
+                    fprintf(fp, "Magnitude difference threshold: 2.5\n");
+                    fprintf(fp, "Earthquake magnitude threshold: 3.0\n");
+                    fprintf(fp, "Depth difference threshold (km): 2\n");
                     fprintf(fp, "---------------------------------------------------------------------------------------------------------\n");
                     iters++;
                     if (iters>3) {

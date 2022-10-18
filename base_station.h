@@ -13,7 +13,12 @@
 #include <stdio.h>
 #include <stddef.h>
 
-int base_station(MPI_Comm master_comm, MPI_Comm comm, int num_iterations);
+int base_station(MPI_Comm master_comm, MPI_Comm comm, int num_iterations, int nrows, int ncols);
 char* getWDay(int wday);
+
+typedef struct {
+    int num_rows;
+    int num_cols;
+} grid_dims;
 
 #endif // BASE_STATION_H

@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     if (color) {// if last process
         // base station node
-        base_station(MPI_COMM_WORLD, sensor_comm, num_iters);
+        base_station(MPI_COMM_WORLD, sensor_comm, num_iters, nrows, ncols);
     }
     else {
         // sensor node

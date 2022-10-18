@@ -20,6 +20,10 @@
 #define SENSOR_BLOCK_SIZE 0.5 // how far apart the sensors are between adjacent sensors
 #define MIN_DIST_DEVIATION -0.5
 #define MAX_DIST_DEVIATION 0.5
+#define THRESHOLD_DIST 200 // threshold distance difference between sensor coordinates
+#define THRESHOLD_MAG_DIFF 2.5 // threshold magnitude difference between readings
+#define THRESHOLD_DEPTH 2 // threshold depth difference between sensor depths
+#define THRESHOLD_MAG 3 //threshold earthquake magnitude that triggers a possible alert for sensors
 
 typedef struct {
     int current_year, current_month, current_date, current_day; // date variables
